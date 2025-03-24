@@ -1,0 +1,10 @@
+{
+  "debug": false,
+  "implemented_only": true,
+  "allow_invalid_species": false,
+  "blacklist": {
+    "species": [],
+    "label": [],
+    "generation": []
+  }
+}

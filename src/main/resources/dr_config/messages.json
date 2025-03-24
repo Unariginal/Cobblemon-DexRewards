@@ -1,0 +1,76 @@
+{
+  "prefix": "<dark_gray>[<blue>DexRewards<dark_gray>]",
+  "messages": {
+    "rewards_to_claim": "%prefix% You have rewards to claim!",
+    "reward_claimable": "%prefix% You can claim the %group.name% rewards!",
+    "rewards_claimed": "%prefix% You've claimed rewards for %group.name%!",
+    "reset_command_sender": "%prefix% You've reset %player%'s pokedex reward progress!",
+    "reset_command_target": "%prefix% Your pokedex reward progress has been reset!",
+    "update_command": "%prefix% You've updated the pokedex reward progress of %player%",
+    "reload_command": "%prefix% Reloaded!"
+  },
+  "gui": {
+    "title": "<gold><bold>Pokedex Rewards",
+    "size": 6,
+    "page_layout": [
+      "#########",
+      "####I####",
+      "#GGGGGGG#",
+      "#GGGGGGG#",
+      "#GGGGGGG#",
+      "P#######N"
+    ],
+    "page_layout_symbols": {
+      "background": "#",
+      "player_info": "I",
+      "group": "G",
+      "previous_page": "P",
+      "next_page": "N"
+    },
+    "background": {
+      "item": "minecraft:gray_stained_glass_pane",
+      "name": "",
+      "lore": [],
+      "item_data": {}
+    },
+    "player_info": {
+      "name": "<light_purple>Pokedex Info",
+      "lore": [
+        "<gray>Current Rank: %player.rank%",
+        "<gray>Progress: %player.caught_count%/%pokedex.total% (%player.caught_percent%%)"
+      ],
+      "show_enchantment_glint": true
+    },
+    "claimed_group": {
+      "name": "<green><bold>%group.name% (%group.percent%%)",
+      "lore": [
+        "<blue>Already Claimed!"
+      ],
+      "show_enchantment_glint": false
+    },
+    "claimable_group": {
+      "name": "<gold><bold>%group.name% (%group.percent%%)",
+      "lore": [
+        "<green>Claimable!"
+      ],
+      "show_enchantment_glint": true
+    },
+    "locked_group": {
+      "name": "<red><bold>%group.name% (%group.percent%%)",
+      "lore": [
+        "<red>Not Unlocked!"
+      ],
+      "show_enchantment_glint": false
+    },
+    "navigation": {
+      "previous_item": "minecraft:arrow",
+      "previous_item_data": {},
+      "previous_name": "<gray>Previous",
+      "previous_lore": [],
+      "next_item": "minecraft:arrow",
+      "next_item_data": {},
+      "next_name": "<gray>Next",
+      "next_lore": []
+    }
+  }
+}

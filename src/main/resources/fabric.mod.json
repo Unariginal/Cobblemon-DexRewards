@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "dexrewards",
+  "version": "${version}",
+  "name": "DexRewards",
+  "description": "Pokedex rewards for Cobblemon",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.unariginal.dexrewards.DexRewards"
+    ]
+  },
+  "mixins": [
+    "dexrewards.mixins.json",
+    {
+      "config": "dexrewards.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}",
+    "cobblemon": "1.6.1+1.21.1"
+  }
+}

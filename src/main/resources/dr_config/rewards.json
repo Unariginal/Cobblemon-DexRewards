@@ -1,0 +1,276 @@
+{
+  "reward_groups": {
+    "Trainer": {
+      "icon": "cobblemon:poke_ball",
+      "icon_data": {},
+      "required_caught_percent": 5.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:poke_ball",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Rookie": {
+      "icon": "cobblemon:fast_ball",
+      "icon_data": {},
+      "required_caught_percent": 10.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:great_ball",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Beginner": {
+      "icon": "cobblemon:great_ball",
+      "icon_data": {},
+      "required_caught_percent": 15.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:thunder_stone",
+          "item_data": {},
+          "count": 2
+        }
+      }
+    },
+    "Novice": {
+      "icon": "cobblemon:level_ball",
+      "icon_data": {},
+      "required_caught_percent": 20.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:exp_candy_s",
+          "item_data": {},
+          "count": 48
+        }
+      }
+    },
+    "Ranger": {
+      "icon": "cobblemon:ultra_ball",
+      "icon_data": {},
+      "required_caught_percent": 25.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:ultra_ball",
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "Collector": {
+      "icon": "cobblemon:lure_ball",
+      "icon_data": {},
+      "required_caught_percent": 30.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:fire_stone",
+          "item_data": {},
+          "count": 2
+        }
+      }
+    },
+    "Apprentice": {
+      "icon": "cobblemon:safari_ball",
+      "icon_data": {},
+      "required_caught_percent": 35.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:exp_candy_m",
+          "item_data": {},
+          "count": 48
+        }
+      }
+    },
+    "Expert": {
+      "icon": "cobblemon:heavy_ball",
+      "icon_data": {},
+      "required_caught_percent": 40.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:nest_ball",
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "Veteran": {
+      "icon": "cobblemon:love_ball",
+      "icon_data": {},
+      "required_caught_percent": 45.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:lure_ball",
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "Sage": {
+      "icon": "cobblemon:moon_ball",
+      "icon_data": {},
+      "required_caught_percent": 50.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:quick_ball",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Professor": {
+      "icon": "cobblemon:repeat_ball",
+      "icon_data": {},
+      "required_caught_percent": 55.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:rare_candy",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Commander": {
+      "icon": "cobblemon:timer_ball",
+      "icon_data": {},
+      "required_caught_percent": 60.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:rare_candy",
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "Elite": {
+      "icon": "cobblemon:luxury_ball",
+      "icon_data": {},
+      "required_caught_percent": 65.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:luxury_ball",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Executive": {
+      "icon": "cobblemon:premier_ball",
+      "icon_data": {},
+      "required_caught_percent": 70.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:cherish_ball",
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "Master": {
+      "icon": "cobblemon:dusk_ball",
+      "icon_data": {},
+      "required_caught_percent": 75.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:exp_candy_l",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Baron": {
+      "icon": "cobblemon:quick_ball",
+      "icon_data": {},
+      "required_caught_percent": 80.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:beast_ball",
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "Duke": {
+      "icon": "cobblemon:beast_ball",
+      "icon_data": {},
+      "required_caught_percent": 85.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:master_ball",
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "Champion": {
+      "icon": "cobblemon:master_ball",
+      "icon_data": {},
+      "required_caught_percent": 90.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:ancient_origin_ball",
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "World Champion": {
+      "icon": "cobblemon:cherish_ball",
+      "icon_data": {},
+      "required_caught_percent": 95.0,
+      "rewards": {
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:exp_candy_xl",
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "Arceus": {
+      "icon": "minecraft:nether_star",
+      "icon_data": {},
+      "required_caught_percent": 100.0,
+      "rewards": {
+        "command_group": {
+          "type": "command",
+          "commands": [
+            "tellraw @a [\"\",{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"DexRewards\",\"color\":\"blue\"},{\"text\":\"]\",\"color\":\"dark_gray\"},{\"text\":\" %player% has completed their pokedex!\",\"color\":\"gold\"}]"
+          ]
+        },
+        "item_group": {
+          "type": "item",
+          "item": "cobblemon:master_ball",
+          "item_data": {},
+          "count": 6
+        },
+        "item_group_2": {
+          "type": "item",
+          "item": "cobblemon:exp_candy_xl",
+          "item_data": {},
+          "count": 32
+        }
+      }
+    }
+  }
+}
