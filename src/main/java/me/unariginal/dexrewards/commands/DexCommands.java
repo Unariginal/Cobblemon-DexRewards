@@ -10,6 +10,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.dexrewards.DexRewards;
+import me.unariginal.dexrewards.config.PlayerDataConfig;
+import me.unariginal.dexrewards.config.RewardGUIConfig;
 import me.unariginal.dexrewards.datatypes.Messages;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.utils.TextUtils;
@@ -71,7 +73,7 @@ public class DexCommands {
         if (ctx.getSource().isExecutedByPlayer()) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
-                DexRewards.INSTANCE.config().gui_layout.create_gui(player, 0);
+                RewardGUIConfig.gui_layout.create_gui(player, 0);
             }
         }
         return 0;
@@ -80,16 +82,18 @@ public class DexCommands {
     private int reset(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerPlayerEntity target = EntityArgumentType.getPlayer(ctx, "player");
         if (target != null) {
-            PlayerData data = DexRewards.INSTANCE.config().getPlayerData(target.getUuid());
+            PlayerData data = PlayerDataConfig.getPlayerData(target.getUuid());
             if (data != null) {
-                data.caught_count = 0;
-                data.claimable_rewards.clear();
-                data.claimed_rewards.clear();
+                for (PlayerData.ProgressTracker progressTracker : data.pokedex_progress) {
+                    progressTracker.caught_count = 0;
+                    progressTracker.claimable_rewards.clear();
+                    progressTracker.claimed_rewards.clear();
+                }
 
                 data.updateCaughtCount();
                 data.updateClaimableRewards();
 
-                DexRewards.INSTANCE.config().updatePlayerData(data);
+                PlayerDataConfig.updatePlayerData(data);
                 ctx.getSource().sendMessage(TextUtils.deserialize(Messages.parse(Messages.reset_sender, target.getUuid())));
                 target.sendMessage(TextUtils.deserialize(Messages.parse(Messages.reset_target, target.getUuid())));
             }
@@ -100,12 +104,12 @@ public class DexCommands {
     private int update(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerPlayerEntity target = EntityArgumentType.getPlayer(ctx, "player");
         if (target != null) {
-            PlayerData data = DexRewards.INSTANCE.config().getPlayerData(target.getUuid());
+            PlayerData data = PlayerDataConfig.getPlayerData(target.getUuid());
             if (data != null) {
                 data.updateCaughtCount();
                 data.updateClaimableRewards();
 
-                DexRewards.INSTANCE.config().updatePlayerData(data);
+                PlayerDataConfig.updatePlayerData(data);
                 ctx.getSource().sendMessage(TextUtils.deserialize(Messages.parse(Messages.update_command, target.getUuid())));
             }
         }

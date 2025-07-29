@@ -1,0 +1,364 @@
+{
+  "display_name": "National Dex",
+  "pokedex": "cobblemon:national",
+  "count_shinies": false,
+  "shiny_only": false,
+  "reward_groups": {
+    "trainer": {
+      "required_caught_percent": 5.0,
+      "display_name": "Trainer",
+      "icon": "cobblemon:poke_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:poke_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "rookie": {
+      "required_caught_percent": 10.0,
+      "display_name": "Rookie",
+      "icon": "cobblemon:fast_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:great_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "beginner": {
+      "required_caught_percent": 15.0,
+      "display_name": "Beginner",
+      "icon": "cobblemon:great_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:thunder_stone",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 2
+        }
+      }
+    },
+    "novice": {
+      "required_caught_percent": 20.0,
+      "display_name": "Novice",
+      "icon": "cobblemon:level_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:exp_candy_s",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 48
+        }
+      }
+    },
+    "ranger": {
+      "required_caught_percent": 25.0,
+      "display_name": "Ranger",
+      "icon": "cobblemon:ultra_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:ultra_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "collector": {
+      "required_caught_percent": 30.0,
+      "display_name": "Collector",
+      "icon": "cobblemon:lure_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:fire_stone",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 2
+        }
+      }
+    },
+    "apprentice": {
+      "required_caught_percent": 35.0,
+      "display_name": "Apprentice",
+      "icon": "cobblemon:safari_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:exp_candy_m",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 48
+        }
+      }
+    },
+    "expert": {
+      "required_caught_percent": 40.0,
+      "display_name": "Expert",
+      "icon": "cobblemon:heavy_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:nest_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "veteran": {
+      "required_caught_percent": 45.0,
+      "display_name": "Veteran",
+      "icon": "cobblemon:love_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:lure_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "sage": {
+      "required_caught_percent": 50.0,
+      "display_name": "Sage",
+      "icon": "cobblemon:moon_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:quick_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "professor": {
+      "required_caught_percent": 55.0,
+      "display_name": "Professor",
+      "icon": "cobblemon:repeat_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:rare_candy",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "commander": {
+      "required_caught_percent": 60.0,
+      "display_name": "Commander",
+      "icon": "cobblemon:timer_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:rare_candy",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 32
+        }
+      }
+    },
+    "elite": {
+      "required_caught_percent": 65.0,
+      "display_name": "Elite",
+      "icon": "cobblemon:luxury_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:luxury_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "executive": {
+      "required_caught_percent": 70.0,
+      "display_name": "Executive",
+      "icon": "cobblemon:premier_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:cherish_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "master": {
+      "required_caught_percent": 75.0,
+      "display_name": "Master",
+      "icon": "cobblemon:dusk_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:exp_candy_l",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "baron": {
+      "required_caught_percent": 80.0,
+      "display_name": "Baron",
+      "icon": "cobblemon:quick_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:beast_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "duke": {
+      "required_caught_percent": 85.0,
+      "display_name": "Duke",
+      "icon": "cobblemon:beast_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:master_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "champion": {
+      "required_caught_percent": 90.0,
+      "display_name": "Champion",
+      "icon": "cobblemon:master_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:ancient_origin_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 1
+        }
+      }
+    },
+    "world_champion": {
+      "required_caught_percent": 95.0,
+      "display_name": "World Champion",
+      "icon": "cobblemon:cherish_ball",
+      "icon_data": {},
+      "rewards": {
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:exp_candy_xl",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 16
+        }
+      }
+    },
+    "arceus": {
+      "required_caught_percent": 100.0,
+      "display_name": "Arceus",
+      "icon": "minecraft:nether_star",
+      "icon_data": {},
+      "rewards": {
+        "example_command_reward": {
+          "display_name": "Completion Announcement",
+          "type": "command",
+          "commands": [
+            "tellraw @a [\"\",{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"DexRewards\",\"color\":\"blue\"},{\"text\":\"]\",\"color\":\"dark_gray\"},{\"text\":\" %player% has completed their pokedex!\",\"color\":\"gold\"}]"
+          ]
+        },
+        "example_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:master_ball",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 6
+        },
+        "another_item_reward": {
+          "display_name": "%item_count%x %item%",
+          "type": "item",
+          "item": "cobblemon:exp_candy_xl",
+          "item_name": "",
+          "item_lore": [],
+          "item_data": {},
+          "count": 32
+        }
+      }
+    }
+  }
+}

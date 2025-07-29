@@ -10,8 +10,8 @@ import java.util.Objects;
 public class CommandReward extends Reward {
     List<String> commands;
 
-    public CommandReward(String name, String type, List<String> commands) {
-        super(name, type);
+    public CommandReward(String name, String type, String displayName, List<String> commands) {
+        super(name, type, displayName);
         this.commands = commands;
     }
 

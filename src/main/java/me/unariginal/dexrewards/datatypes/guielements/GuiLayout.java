@@ -3,6 +3,8 @@ package me.unariginal.dexrewards.datatypes.guielements;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.unariginal.dexrewards.DexRewards;
+import me.unariginal.dexrewards.config.PlayerDataConfig;
+import me.unariginal.dexrewards.config.RewardGUIConfig;
 import me.unariginal.dexrewards.datatypes.Messages;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
@@ -76,7 +78,7 @@ public class GuiLayout {
 
         ItemStack player_info = Items.PLAYER_HEAD.getDefaultStack();
         GuiElement pi_element = null;
-        for (GuiElement element : DexRewards.INSTANCE.config().gui_elements) {
+        for (GuiElement element : RewardGUIConfig.gui_elements) {
             if (element.key().equals("player_info")) {
                 pi_element = element;
             }
@@ -99,7 +101,7 @@ public class GuiLayout {
                         RewardGroup group = DexRewards.INSTANCE.config().reward_groups.get(count);
                         ItemStack icon = group.icon;
 
-                        PlayerData playerData = DexRewards.INSTANCE.config().getPlayerData(player.getUuid());
+                        PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
                         String status = "locked";
                         if (playerData != null) {
                             if (playerData.claimable_rewards.contains(group.name)) {
@@ -110,7 +112,7 @@ public class GuiLayout {
                         }
 
                         GuiElement group_element = null;
-                        for (GuiElement element : DexRewards.INSTANCE.config().gui_elements) {
+                        for (GuiElement element : RewardGUIConfig.gui_elements) {
                             if (element.key().equals(status + "_group")) {
                                 group_element = element;
                             }
@@ -122,21 +124,21 @@ public class GuiLayout {
 
                         String finalStatus = status;
                         gui.setSlot(slot, new GuiElementBuilder(icon)
-                                        .setCallback((i, clickType, slotActionType) -> {
-                                            if (finalStatus.equals("claimable")) {
-                                                playerData.claimable_rewards.removeIf(data -> data.equals(group.name));
-                                                playerData.claimed_rewards.add(group.name);
+                                .setCallback((i, clickType, slotActionType) -> {
+                                    if (finalStatus.equals("claimable")) {
+                                        playerData.claimable_rewards.removeIf(data -> data.equals(group.name));
+                                        playerData.claimed_rewards.add(group.name);
 
-                                                group.distribute_rewards(player);
+                                        group.distribute_rewards(player);
 
-                                                DexRewards.INSTANCE.config().updatePlayerData(playerData);
+                                        DexRewards.INSTANCE.config().updatePlayerData(playerData);
 
-                                                player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_claimed, group)));
+                                        player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_claimed, group)));
 
-                                                create_gui(player, page);
-                                            }
-                                        })
-                                        .build());
+                                        create_gui(player, page);
+                                    }
+                                })
+                                .build());
                         set_groups++;
                     } else {
                         gui.setSlot(slot, new GuiElementBuilder(background_item).build());

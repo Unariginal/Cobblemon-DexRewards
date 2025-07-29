@@ -6,8 +6,6 @@ import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import me.unariginal.dexrewards.DexRewards;
 import me.unariginal.dexrewards.datatypes.*;
-import me.unariginal.dexrewards.datatypes.guielements.GuiElement;
-import me.unariginal.dexrewards.datatypes.guielements.GuiLayout;
 import me.unariginal.dexrewards.datatypes.rewards.CommandReward;
 import me.unariginal.dexrewards.datatypes.rewards.ItemReward;
 import me.unariginal.dexrewards.datatypes.rewards.Reward;
@@ -37,80 +35,50 @@ public class Config {
     public List<String> generation_blacklist = new ArrayList<>();
 
     public List<RewardGroup> reward_groups = new ArrayList<>();
-    public List<PlayerData> player_data = new ArrayList<>();
-    public List<GuiElement> gui_elements = new ArrayList<>();
-    public GuiLayout gui_layout;
 
     public Config() {
         try {
-            checkFiles();
+            loadConfig();
+            loadOldRewards();
+            loadOldGUI();
+            loadOldPlayerData();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        loadConfig();
-        loadRewards();
-        loadMessages();
-        loadPlayerData();
-    }
-
-    private void checkFiles() throws IOException {
-        File main_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards").toFile();
-        if (!main_file.exists()) {
-            main_file.mkdirs();
-        }
-
-        String[] files = {
-                "config.json",
-                "messages.json",
-                "rewards.json"
-        };
-
-        for (String file : files) {
-            File config_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/" + file).toFile();
-            if (config_file.createNewFile()) {
-                InputStream in = DexRewards.class.getResourceAsStream("/dr_config/" + file);
-                OutputStream out = new FileOutputStream(config_file);
-                assert in != null;
-
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-
-                in.close();
-                out.close();
-            }
+            DexRewards.LOGGER.error("[DexRewards] Failed to load config files!", e);
         }
     }
 
-    private JsonObject getRoot(File file) {
-        JsonElement root_element;
-        try {
-            root_element = JsonParser.parseReader(new FileReader(file));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return root_element.getAsJsonObject();
-    }
+    private void loadConfig() throws IOException {
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards").toFile();
+        if (!rootFolder.exists())
+            rootFolder.mkdirs();
 
-    private void loadConfig() {
-        File config_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/config.json").toFile();
+        File configFile = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/config.json").toFile();
+        JsonObject newRoot = new JsonObject();
+        JsonObject root = new JsonObject();
+        if (configFile.exists())
+            root = JsonParser.parseReader(new FileReader(configFile)).getAsJsonObject();
 
-        JsonObject root = getRoot(config_file);
-        if (root == null) {
-            return;
-        }
+        if (root.has("debug"))
+            DexRewards.DEBUG = root.get("debug").getAsBoolean();
+        newRoot.addProperty("debug", DexRewards.DEBUG);
 
-        DexRewards.DEBUG = root.get("debug").getAsBoolean();
-        implemented_only = root.get("implemented_only").getAsBoolean();
-        allow_invalid_species = root.get("allow_invalid_species").getAsBoolean();
+        if (root.has("implemented_only"))
+            implemented_only = root.get("implemented_only").getAsBoolean();
+        newRoot.addProperty("implemented_only", implemented_only);
 
-        JsonObject blacklist = root.get("blacklist").getAsJsonObject();
+        if (root.has("allow_invalid_species"))
+            allow_invalid_species = root.get("allow_invalid_species").getAsBoolean();
+        newRoot.addProperty("allow_invalid_species", allow_invalid_species);
 
-        JsonArray species_blacklist = blacklist.get("species").getAsJsonArray();
+        JsonObject blacklist = new JsonObject();
+        if (root.has("blacklist"))
+            blacklist = root.get("blacklist").getAsJsonObject();
+
+        JsonArray species_blacklist = new JsonArray();
+        if (blacklist.has("species"))
+            species_blacklist = blacklist.get("species").getAsJsonArray();
+
+        this.species_blacklist.clear();
         for (JsonElement element : species_blacklist) {
             String species_id = element.getAsString();
             Species species = PokemonSpecies.INSTANCE.getByName(species_id);
@@ -118,216 +86,255 @@ public class Config {
                 this.species_blacklist.add(species);
             }
         }
+        species_blacklist = new JsonArray();
+        for (Species species : this.species_blacklist) {
+            species_blacklist.add(species.getName());
+        }
+        blacklist.add("species", species_blacklist);
 
-        label_blacklist = blacklist.get("label").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        generation_blacklist = blacklist.get("generation").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        if (blacklist.has("label"))
+            label_blacklist = blacklist.get("label").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        JsonArray labelBlacklist = new JsonArray();
+        for (String label : label_blacklist) {
+            labelBlacklist.add(label);
+        }
+        blacklist.add("label", labelBlacklist);
+
+        if (blacklist.has("generation"))
+            generation_blacklist = blacklist.get("generation").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
+        JsonArray generationBlacklist = new JsonArray();
+        for (String generation : generation_blacklist) {
+            generationBlacklist.add(generation);
+        }
+        blacklist.add("generation", generationBlacklist);
+
+        newRoot.add("blacklist", blacklist);
+
+        configFile.delete();
+        configFile.createNewFile();
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(configFile);
+        gson.toJson(newRoot, writer);
+        writer.close();
     }
 
-    private void loadRewards() {
-        File rewards_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/rewards.json").toFile();
+    // TODO: Move to separate file, multiple reward files
+    private void loadOldRewards() throws IOException {
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards").toFile();
+        if (!rootFolder.exists())
+            rootFolder.mkdirs();
 
-        JsonObject root = getRoot(rewards_file);
-        if (root == null) {
-            return;
+        File rewardsFile = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/rewards.json").toFile();
+        JsonObject newRoot = new JsonObject();
+        JsonObject root = new JsonObject();
+        if (rewardsFile.exists())
+            root = JsonParser.parseReader(new FileReader(rewardsFile)).getAsJsonObject();
+
+        JsonObject reward_groups = new JsonObject();
+        if (root.has("reward_groups")) {
+            reward_groups = root.get("reward_groups").getAsJsonObject();
         }
 
-        JsonObject reward_groups = root.get("reward_groups").getAsJsonObject();
         List<RewardGroup> rewardGroups = new ArrayList<>();
         for (String key : reward_groups.keySet()) {
             JsonObject reward_group = reward_groups.get(key).getAsJsonObject();
 
-            String icon_id = reward_group.get("icon").getAsString();
-            ItemStack icon = Registries.ITEM.get(Identifier.of(icon_id)).getDefaultStack();
-            JsonElement icon_data = reward_group.get("icon_data");
-            if (icon_data != null) {
-                icon.applyChanges(ComponentChanges.CODEC.decode(JsonOps.INSTANCE, icon_data).getOrThrow().getFirst());
-            }
-
+            if (!reward_group.has("required_caught_percent")) continue;
             double required_percent = reward_group.get("required_caught_percent").getAsDouble();
+
+            String displayName = key;
+            if (reward_group.has("display_name"))
+                displayName = reward_group.get("display_name").getAsString();
+            reward_group.addProperty("display_name", displayName);
+
+            String icon_id = "cobblemon:poke_ball";
+            if (reward_group.has("icon"))
+                icon_id = reward_group.get("icon").getAsString();
+            reward_group.addProperty("icon", icon_id);
+            ItemStack icon = Registries.ITEM.get(Identifier.of(icon_id)).getDefaultStack();
+
+            JsonElement icon_data = new JsonObject();
+            if (reward_group.has("icon_data")) {
+                icon_data = reward_group.get("icon_data");
+                if (icon_data != null) {
+                    icon.applyChanges(ComponentChanges.CODEC.decode(JsonOps.INSTANCE, icon_data).getOrThrow().getFirst());
+                }
+            }
+            reward_group.add("icon_data", icon_data);
 
             JsonObject rewards_object = reward_group.get("rewards").getAsJsonObject();
             List<Reward> rewards = new ArrayList<>();
             for (String reward_key : rewards_object.keySet()) {
                 JsonObject reward = rewards_object.get(reward_key).getAsJsonObject();
+                if (!reward.has("type")) continue;
                 String type = reward.get("type").getAsString();
+
+                String rewardDisplayName = reward_key;
+                if (reward.has("display_name"))
+                    rewardDisplayName = reward.get("display_name").getAsString();
+                reward.addProperty("display_name", rewardDisplayName);
+
                 if (type.equalsIgnoreCase("item")) {
+                    if (!reward.has("item")) continue;
                     String item_id = reward.get("item").getAsString();
-                    int count = reward.get("count").getAsInt();
 
-                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(item_id)), count);
+                    int count = 1;
+                    if (reward.has("count"))
+                        count = reward.get("count").getAsInt();
+                    reward.addProperty("count", count);
 
-                    JsonElement item_data = reward.get("item_data");
-                    if (item_data != null) {
-                        item.applyChanges(ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst());
+                    String itemName = "";
+                    if (reward.has("item_name"))
+                        itemName = reward.get("item_name").getAsString();
+                    reward.addProperty("item_name", itemName);
+
+                    List<String> itemLore = new ArrayList<>();
+                    if (reward.has("item_lore"))
+                        itemLore = reward.getAsJsonArray("item_lore").asList().stream().map(JsonElement::getAsString).toList();
+                    JsonArray itemLore_array = new JsonArray();
+                    for (String lore : itemLore) {
+                        itemLore_array.add(lore);
+                    }
+                    reward.add("item_lore", itemLore_array);
+
+                    ComponentChanges itemDataChanges = ComponentChanges.EMPTY;
+                    JsonElement itemData = new JsonObject();
+                    if (reward.has("item_data")) {
+                        itemData = reward.get("item_data");
+                        if (itemData != null)
+                            itemDataChanges = ComponentChanges.CODEC.decode(JsonOps.INSTANCE, itemData).getOrThrow().getFirst();
+                    }
+                    reward.add("item_data", itemData);
+
+                    List<Text> loreArray = new ArrayList<>();
+                    for (String lore : itemLore) {
+                        loreArray.add(TextUtils.deserialize(lore));
                     }
 
-                    rewards.add(new ItemReward(reward_key, type, item));
+                    ItemStack item = new ItemStack(Registries.ITEM.get(Identifier.of(item_id)), count);
+                    item.applyComponentsFrom(
+                            ComponentMap.builder()
+                                    .add(DataComponentTypes.CUSTOM_NAME, TextUtils.deserialize(itemName))
+                                    .add(DataComponentTypes.LORE, new LoreComponent(loreArray))
+                                    .build()
+                    );
+                    item.applyChanges(itemDataChanges);
+
+                    rewards.add(new ItemReward(reward_key, type, rewardDisplayName, item));
                 } else if (type.equalsIgnoreCase("command")) {
+                    if (!reward.has("commands")) continue;
                     List<String> commands = reward.get("commands").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-                    rewards.add(new CommandReward(reward_key, type, commands));
+                    rewards.add(new CommandReward(reward_key, type, rewardDisplayName, commands));
                 }
             }
 
-            rewardGroups.add(new RewardGroup(key, icon, required_percent, rewards));
+            rewardGroups.add(new RewardGroup(key, icon, required_percent, displayName, rewards));
+            reward_groups.add(key, reward_group);
         }
+
+        newRoot.add("reward_groups", reward_groups);
 
         this.reward_groups = rewardGroups;
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        Writer writer = new FileWriter(rewardsFile);
+        gson.toJson(newRoot, writer);
+        writer.close();
     }
 
-    private void loadMessages() {
-        File rewards_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/messages.json").toFile();
+    private void loadOldGUI() throws IOException {
+        File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards").toFile();
+        if (!rootFolder.exists())
+            rootFolder.mkdirs();
 
-        JsonObject root = getRoot(rewards_file);
-        if (root == null) {
-            return;
+        File rewardGuiFile = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/reward_gui.json").toFile();
+
+        File messagesFile = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/messages.json").toFile();
+        JsonObject root = new JsonObject();
+        if (messagesFile.exists())
+            root = JsonParser.parseReader(new FileReader(messagesFile)).getAsJsonObject();
+
+        if (root.has("gui")) {
+            JsonObject gui = root.get("gui").getAsJsonObject();
+
+            JsonObject newRoot = RewardGUIConfig.guiMovementCompatMethod(gui);
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+            Writer writer = new FileWriter(rewardGuiFile);
+            gson.toJson(newRoot, writer);
+            writer.close();
         }
-
-        Messages.prefix = root.get("prefix").getAsString();
-
-        JsonObject messages = root.get("messages").getAsJsonObject();
-        Messages.rewards_to_claim = messages.get("rewards_to_claim").getAsString();
-        Messages.reward_claimable = messages.get("reward_claimable").getAsString();
-        Messages.rewards_claimed = messages.get("rewards_claimed").getAsString();
-        Messages.update_command = messages.get("update_command").getAsString();
-        Messages.reset_sender = messages.get("reset_command_sender").getAsString();
-        Messages.reset_target = messages.get("reset_command_target").getAsString();
-        Messages.reload = messages.get("reload_command").getAsString();
-
-        JsonObject gui = root.get("gui").getAsJsonObject();
-        String title = gui.get("title").getAsString();
-        int size = gui.get("size").getAsInt();
-
-        List<String> page_layout = gui.get("page_layout").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-
-        JsonObject page_layout_symbols = gui.get("page_layout_symbols").getAsJsonObject();
-        String background_symbol = page_layout_symbols.get("background").getAsString();
-        String player_info_symbol = page_layout_symbols.get("player_info").getAsString();
-        String group_symbol = page_layout_symbols.get("group").getAsString();
-        String previous_page_symbol = page_layout_symbols.get("previous_page").getAsString();
-        String next_page_symbol = page_layout_symbols.get("next_page").getAsString();
-
-        JsonObject background = gui.get("background").getAsJsonObject();
-        String background_item_id = background.get("item").getAsString();
-        String background_name = background.get("name").getAsString();
-        List<String> background_lore = background.get("lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonElement background_item_data = background.get("item_data");
-        ItemStack background_item = generateItem(background_item_id, background_name, background_lore, background_item_data);
-
-        JsonObject navigation = gui.get("navigation").getAsJsonObject();
-        String previous_item_id = navigation.get("previous_item").getAsString();
-        String previous_name = navigation.get("previous_name").getAsString();
-        List<String> previous_lore = navigation.get("previous_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonElement previous_item_data = navigation.get("previous_item_data");
-        ItemStack previous_item = generateItem(previous_item_id, previous_name, previous_lore, previous_item_data);
-
-        String next_item_id = navigation.get("next_item").getAsString();
-        String next_name = navigation.get("next_name").getAsString();
-        List<String> next_lore = navigation.get("next_lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-        JsonElement next_item_data = navigation.get("next_item_data");
-        ItemStack next_item = generateItem(next_item_id, next_name, next_lore, next_item_data);
-
-        String[] elements = {
-                "player_info",
-                "claimed_group",
-                "claimable_group",
-                "locked_group"
-        };
-
-        for (String element : elements) {
-            JsonObject element_object = gui.get(element).getAsJsonObject();
-            String name = element_object.get("name").getAsString();
-            List<String> lore = element_object.get("lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList();
-            boolean glint = element_object.get("show_enchantment_glint").getAsBoolean();
-            gui_elements.add(new GuiElement(element, name, lore, glint));
-        }
-
-        gui_layout = new GuiLayout(title, size, page_layout, background_symbol, player_info_symbol, group_symbol, previous_page_symbol, next_page_symbol, background_item, previous_item, next_item);
     }
 
-    private ItemStack generateItem(String id, String name, List<String> lore, JsonElement item_data) {
-        ItemStack stack = Registries.ITEM.get(Identifier.of(id)).getDefaultStack();
+    // TODO: Translate old data format to new data format
+    private void loadOldPlayerData() throws IOException {
+        File old_player_data_folder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/players").toFile();
+        if (!old_player_data_folder.exists())
+            old_player_data_folder.mkdirs();
 
-        List<Text> lore_text = new ArrayList<>();
-        for (String line : lore) {
-            lore_text.add(TextUtils.deserialize(line));
-        }
-
-        stack.applyComponentsFrom(ComponentMap.builder()
-                .add(DataComponentTypes.CUSTOM_NAME, TextUtils.deserialize(name))
-                .add(DataComponentTypes.LORE, new LoreComponent(lore_text))
-                .build());
-        if (item_data != null) {
-            stack.applyChanges(ComponentChanges.CODEC.decode(JsonOps.INSTANCE, item_data).getOrThrow().getFirst());
-        }
-        return stack;
-    }
-
-    private void loadPlayerData() {
-        File player_data_folder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/players").toFile();
-        if (!player_data_folder.exists()) {
-            player_data_folder.mkdirs();
-        }
-
-        for (File file : Objects.requireNonNull(player_data_folder.listFiles())) {
+        for (File file : Objects.requireNonNull(old_player_data_folder.listFiles())) {
             if (file.getName().endsWith(".json")) {
-                JsonObject root = getRoot(file);
-                if (root == null) {
-                    continue;
-                }
+                JsonObject newRoot = new JsonObject();
+                JsonObject root = JsonParser.parseReader(new FileReader(file)).getAsJsonObject();
+
+                if (!(root.has("uuid") && root.has("username"))) continue;
 
                 UUID uuid = UUID.fromString(root.get("uuid").getAsString());
-                String username = root.get("username").getAsString();
-                int caught_count = root.get("caught_count").getAsInt();
+                newRoot.addProperty("uuid", uuid.toString());
 
-                JsonArray claimed = root.get("claimed_rewards").getAsJsonArray();
+                String username = root.get("username").getAsString();
+                newRoot.addProperty("username", username);
+
+                int caught_count = 0;
+                if (root.has("caught_count"))
+                    caught_count = root.get("caught_count").getAsInt();
+                newRoot.addProperty("caught_count", caught_count);
+
+                JsonArray claimed = new JsonArray();
+                if (root.has("claimed_rewards"))
+                    root.get("claimed_rewards").getAsJsonArray();
+
                 List<String> claimed_rewards = new ArrayList<>();
                 for (JsonElement reward : claimed) {
                     claimed_rewards.add(reward.getAsString());
                 }
+                claimed = new JsonArray();
+                for (String reward : claimed_rewards) {
+                    claimed.add(reward);
+                }
+                newRoot.add("claimed_rewards", claimed);
 
-                JsonArray claimable = root.get("claimable_rewards").getAsJsonArray();
+                JsonArray claimable = new JsonArray();
+                if (root.has("claimable_rewards"))
+                    root.get("claimable_rewards").getAsJsonArray();
+
                 List<String> claimable_rewards = new ArrayList<>();
                 for (JsonElement reward : claimable) {
                     claimable_rewards.add(reward.getAsString());
                 }
+                claimable = new JsonArray();
+                for (String reward : claimable_rewards) {
+                    claimable.add(reward);
+                }
+                newRoot.add("claimable_rewards", claimable);
 
-                player_data.add(new PlayerData(uuid, username, caught_count, claimed_rewards, claimable_rewards));
+                PlayerData.ProgressTracker tracker = new PlayerData.ProgressTracker("national", caught_count, claimed_rewards, claimable_rewards);
+
+                PlayerDataConfig.player_data.add(new PlayerData(uuid, username, List.of(tracker)));
+
+                File new_player_data_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/player_data/" + uuid + ".json").toFile();
+
+                file.delete();
+                new_player_data_file.delete();
+                new_player_data_file.createNewFile();
+
+                Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                Writer writer = new FileWriter(new_player_data_file);
+                gson.toJson(newRoot, writer);
+                writer.close();
             }
         }
-    }
-
-    public void updatePlayerData(PlayerData playerData) {
-        try {
-            File player_data_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/players/" + playerData.uuid.toString() + ".json").toFile();
-            player_data_file.createNewFile();
-
-            JsonObject root = new JsonObject();
-            root.addProperty("uuid", playerData.uuid.toString());
-            root.addProperty("username", playerData.username);
-            root.addProperty("caught_count", playerData.updateCaughtCount());
-
-            JsonArray claimed_rewards = new JsonArray();
-            for (String group : playerData.claimed_rewards) {
-                claimed_rewards.add(group);
-            }
-            root.add("claimed_rewards", claimed_rewards);
-
-            JsonArray claimable_rewards = new JsonArray();
-            for (String group : playerData.claimable_rewards) {
-                claimable_rewards.add(group);
-            }
-            root.add("claimable_rewards", claimable_rewards);
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Writer writer = new FileWriter(player_data_file);
-            gson.toJson(root, writer);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        player_data.removeIf(data -> data.uuid.equals(playerData.uuid));
-        player_data.add(playerData);
     }
 
     public void generateImplementation(String id, String generation) {
@@ -355,16 +362,7 @@ public class Config {
                 writer.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            DexRewards.LOGGER.error("[DexRewards] Error while generating implementation files.", e);
         }
-    }
-
-    public PlayerData getPlayerData(UUID uuid) {
-        for (PlayerData data : player_data) {
-            if (data.uuid.equals(uuid)) {
-                return data;
-            }
-        }
-        return null;
     }
 }

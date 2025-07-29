@@ -6,15 +6,10 @@ import com.cobblemon.mod.common.api.pokedex.entry.DexEntries;
 import com.cobblemon.mod.common.api.pokedex.entry.PokedexEntry;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.pokemon.Species;
-import eu.pb4.placeholders.api.PlaceholderResult;
-import eu.pb4.placeholders.api.Placeholders;
 import kotlin.Unit;
 import me.unariginal.dexrewards.commands.DexCommands;
-import me.unariginal.dexrewards.config.Config;
-import me.unariginal.dexrewards.datatypes.Messages;
+import me.unariginal.dexrewards.config.*;
 import me.unariginal.dexrewards.datatypes.PlayerData;
-import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
-import me.unariginal.dexrewards.utils.TextUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -25,15 +20,14 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class DexRewards implements ModInitializer {
-    private final static String MODID = "dexrewards";
-    private final static Logger LOGGER = LoggerFactory.getLogger(MODID);
+    public final static String MODID = "dexrewards";
+    public final static Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static DexRewards INSTANCE;
     public static boolean DEBUG = false;
@@ -41,6 +35,9 @@ public class DexRewards implements ModInitializer {
     private FabricServerAudiences audience;
     private MinecraftServer server;
     private Config config;
+    private MessagesConfig messages;
+    private RewardGUIConfig rewardGUIConfig;
+    private DexTypesConfig dexTypes;
 
     public static int DEX_TOTAL = DexEntries.INSTANCE.getEntries().size();
     public static List<Identifier> VALID_DEX_IDS = new ArrayList<>();
@@ -48,94 +45,94 @@ public class DexRewards implements ModInitializer {
     @Override
     public void onInitialize() {
         INSTANCE = this;
+
         new DexCommands();
+
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            this.audience = FabricServerAudiences.of(server);
             this.server = server;
+            this.audience = FabricServerAudiences.of(server);
+
             reload();
 
-            Placeholders.register(Identifier.of("pokedex", "total"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(DEX_TOTAL)));
-
-            Placeholders.register(Identifier.of("player", "caught_count"), (ctx, arg) -> {
-                if (!ctx.hasPlayer()) {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-
-                ServerPlayerEntity player = ctx.player();
-                if (player != null) {
-                    return PlaceholderResult.value(String.valueOf(config.getPlayerData(player.getUuid()).caught_count));
-                } else {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-            });
-
-            Placeholders.register(Identifier.of("player", "rank"), (ctx, arg) -> {
-                if (!ctx.hasPlayer()) {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-
-                ServerPlayerEntity player = ctx.player();
-                if (player != null) {
-                    PlayerData playerData = config.getPlayerData(player.getUuid());
-                    if (playerData != null) {
-                        String rank = "None";
-                        for (RewardGroup group : DexRewards.INSTANCE.config().reward_groups) {
-                            if (playerData.claimed_rewards.contains(group.name)) {
-                                rank = group.name;
-                            }
-                        }
-
-                        return PlaceholderResult.value(rank);
-                    } else {
-                        return PlaceholderResult.invalid("No Player Data!");
-                    }
-                } else {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-            });
-
-            Placeholders.register(Identifier.of("player", "caught_percent"), (ctx, arg) -> {
-                if (!ctx.hasPlayer()) {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-
-                ServerPlayerEntity player = ctx.player();
-                if (player != null) {
-                    PlayerData playerData = config.getPlayerData(player.getUuid());
-                    if (playerData != null) {
-                        String percent = new DecimalFormat("#.##").format(((double) playerData.caught_count / DexRewards.DEX_TOTAL) * 100);
-                        return PlaceholderResult.value(percent);
-                    } else {
-                        return PlaceholderResult.invalid("No Player Data!");
-                    }
-                } else {
-                    return PlaceholderResult.invalid("No Player!");
-                }
-            });
-
-            Placeholders.register(Identifier.of("pokedex", "total_reward_groups"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(config.reward_groups.size())));
+//            Placeholders.register(Identifier.of("pokedex", "total"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(DEX_TOTAL)));
+//
+//            Placeholders.register(Identifier.of("player", "caught_count"), (ctx, arg) -> {
+//                if (!ctx.hasPlayer())
+//                    return PlaceholderResult.invalid("No Player!");
+//
+//                ServerPlayerEntity player = ctx.player();
+//                if (player != null)
+//                    return PlaceholderResult.value(String.valueOf(config.getPlayerData(player.getUuid()).caught_count));
+//                else
+//                    return PlaceholderResult.invalid("No Player!");
+//            });
+//
+//            Placeholders.register(Identifier.of("player", "rank"), (ctx, arg) -> {
+//                if (!ctx.hasPlayer()) {
+//                    return PlaceholderResult.invalid("No Player!");
+//                }
+//
+//                ServerPlayerEntity player = ctx.player();
+//                if (player != null) {
+//                    PlayerData playerData = config.getPlayerData(player.getUuid());
+//                    if (playerData != null) {
+//                        String rank = "None";
+//                        for (RewardGroup group : DexRewards.INSTANCE.config().reward_groups) {
+//                            if (playerData.claimed_rewards.contains(group.name)) {
+//                                rank = group.name;
+//                            }
+//                        }
+//
+//                        return PlaceholderResult.value(rank);
+//                    } else {
+//                        return PlaceholderResult.invalid("No Player Data!");
+//                    }
+//                } else {
+//                    return PlaceholderResult.invalid("No Player!");
+//                }
+//            });
+//
+//            Placeholders.register(Identifier.of("player", "caught_percent"), (ctx, arg) -> {
+//                if (!ctx.hasPlayer()) {
+//                    return PlaceholderResult.invalid("No Player!");
+//                }
+//
+//                ServerPlayerEntity player = ctx.player();
+//                if (player != null) {
+//                    PlayerData playerData = config.getPlayerData(player.getUuid());
+//                    if (playerData != null) {
+//                        String percent = new DecimalFormat("#.##").format(((double) playerData.caught_count / DexRewards.DEX_TOTAL) * 100);
+//                        return PlaceholderResult.value(percent);
+//                    } else {
+//                        return PlaceholderResult.invalid("No Player Data!");
+//                    }
+//                } else {
+//                    return PlaceholderResult.invalid("No Player!");
+//                }
+//            });
+//
+//            Placeholders.register(Identifier.of("pokedex", "total_reward_groups"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(config.reward_groups.size())));
         });
 
         ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler, packetSender, server) -> {
             ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
             if (player != null) {
-                PlayerData playerData = config.getPlayerData(player.getUuid());
+                PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
 
-                if (playerData == null) {
-                    config.updatePlayerData(new PlayerData(player.getUuid(), player.getNameForScoreboard(), 0, List.of(), List.of()));
-                }
+                if (playerData == null)
+                    PlayerDataConfig.updatePlayerData(new PlayerData(player.getUuid(), player.getNameForScoreboard(), List.of()));
 
-                playerData = config.getPlayerData(player.getUuid());
+                playerData = PlayerDataConfig.getPlayerData(player.getUuid());
 
                 if (playerData != null) {
                     playerData.updateCaughtCount();
                     playerData.updateClaimableRewards();
 
-                    if (!playerData.claimable_rewards.isEmpty()) {
-                        player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_to_claim)));
-                    }
+//                    if (!playerData.claimable_rewards.isEmpty()) {
+//                        player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_to_claim)));
+//                    }
 
-                    config.updatePlayerData(playerData);
+                    PlayerDataConfig.updatePlayerData(playerData);
                 }
             }
         });
@@ -143,11 +140,12 @@ public class DexRewards implements ModInitializer {
         CobblemonEvents.POKEMON_GAINED.subscribe(Priority.HIGHEST, event -> {
             UUID player_uuid = event.getPlayerId();
 
-            PlayerData playerData = config.getPlayerData(player_uuid);
+            PlayerData playerData = PlayerDataConfig.getPlayerData(player_uuid);
 
             if (playerData != null) {
                 playerData.updateCaughtCount();
                 playerData.updateClaimableRewards();
+                PlayerDataConfig.updatePlayerData(playerData);
             }
 
             return Unit.INSTANCE;
@@ -156,6 +154,9 @@ public class DexRewards implements ModInitializer {
 
     public void reload() {
         config = new Config();
+        messages = new MessagesConfig();
+        rewardGUIConfig = new RewardGUIConfig();
+        dexTypes = new DexTypesConfig();
 
         int total = 0;
         int invalid_total = 0;
@@ -208,12 +209,12 @@ public class DexRewards implements ModInitializer {
 
         VALID_DEX_IDS = valid_identifiers;
 
-        List<PlayerData> new_data = new ArrayList<>(config().player_data);
+        List<PlayerData> new_data = new ArrayList<>(PlayerDataConfig.player_data);
 
         for (PlayerData data : new_data) {
             data.updateCaughtCount();
             data.updateClaimableRewards();
-            config.updatePlayerData(data);
+            PlayerDataConfig.updatePlayerData(data);
         }
     }
 
@@ -227,6 +228,14 @@ public class DexRewards implements ModInitializer {
 
     public Config config() {
         return config;
+    }
+
+    public DexTypesConfig dexTypes() {
+        return dexTypes;
+    }
+
+    public RewardGUIConfig rewardGUIConfig() {
+        return rewardGUIConfig;
     }
 
     public void logInfo(String message) {

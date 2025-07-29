@@ -3,4 +3,11 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="21" />
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-AoutRefMapFile=C:\Users\17046\Documents\Programming\Java\DexRewards\build\classes\java\client\client-DexRewards-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=C:\Users\17046\Documents\Programming\Java\DexRewards\build\loom-cache\mixin-map-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.client.tiny -AinMapFileNamedIntermediary=C:\Gradle\gradle-8.14\bin\caches\fabric-loom\1.21.1\net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2\mappings.tiny" />
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="DexRewards.main" options="-AoutRefMapFile=C:\Users\17046\Documents\Programming\Java\DexRewards\build\classes\java\main\DexRewards-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=C:\Users\17046\Documents\Programming\Java\DexRewards\build\loom-cache\mixin-map-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.main.tiny -AinMapFileNamedIntermediary=C:\Gradle\gradle-8.14\bin\caches\fabric-loom\1.21.1\net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2\mappings.tiny" />
+      <module name="DexRewards.test" options="-AoutRefMapFile=C:\Users\17046\Documents\Programming\Java\DexRewards\build\classes\java\test\test-DexRewards-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=C:\Users\17046\Documents\Programming\Java\DexRewards\build\loom-cache\mixin-map-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.test.tiny -AinMapFileNamedIntermediary=C:\Gradle\gradle-8.14\bin\caches\fabric-loom\1.21.1\net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2\mappings.tiny" />
+    </option>
+  </component>
 </project>
