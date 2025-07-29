@@ -1,5 +1,5 @@
 {
-  "title": "<gold><bold>%reward_name% Rewards",
+  "title": "<gold><bold>%dex_type% Rewards",
   "size": 6,
   "page_layout": [
     "#########",
@@ -23,7 +23,7 @@
     "item_data": {}
   },
   "player_info": {
-    "name": "<light_purple>%reward_name% Progress Info",
+    "name": "<light_purple>%dex_type% Progress Info",
     "lore": [
       "<gray>Latest Reward: %player.reward_group%",
       "<gray>Progress: %player.dex_count%/%pokedex.total% (%player.dex_percent%%)"

@@ -2,9 +2,9 @@ package me.unariginal.dexrewards.datatypes.guielements;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import me.unariginal.dexrewards.DexRewards;
 import me.unariginal.dexrewards.config.PlayerDataConfig;
 import me.unariginal.dexrewards.config.RewardGUIConfig;
+import me.unariginal.dexrewards.datatypes.DexType;
 import me.unariginal.dexrewards.datatypes.Messages;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
@@ -70,9 +70,14 @@ public class GuiLayout {
         };
     }
 
-    public void create_gui(ServerPlayerEntity player, int page) {
+    public void create_gui(ServerPlayerEntity player, int page, DexType dexType) {
+        PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
+        if (playerData == null) return;
+        PlayerData.ProgressTracker progressTracker = playerData.getProgress(dexType.name);
+        if (progressTracker == null) return;
+
         SimpleGui gui = new SimpleGui(getType(), player, false);
-        gui.setTitle(TextUtils.deserialize(title));
+        gui.setTitle(TextUtils.deserialize(TextUtils.parse(title, dexType, player)));
 
         setSlots(gui, background_symbol, new eu.pb4.sgui.api.elements.GuiElementBuilder(background_item).build());
 
@@ -87,7 +92,7 @@ public class GuiLayout {
                         .add(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()))
                         .build());
         if (pi_element != null) {
-            player_info.applyComponentsFrom(pi_element.getComponentMap(player.getUuid(), null));
+            player_info.applyComponentsFrom(pi_element.getComponentMap(player, null, dexType));
         }
         setSlots(gui, player_info_symbol, new GuiElementBuilder(player_info).build());
 
@@ -97,45 +102,39 @@ public class GuiLayout {
         if (!groupSlots.isEmpty()) {
             for (int slot : groupSlots) {
                 if (count >= set_groups) {
-                    if (count < DexRewards.INSTANCE.config().reward_groups.size()) {
-                        RewardGroup group = DexRewards.INSTANCE.config().reward_groups.get(count);
+                    if (count < dexType.rewardGroups.size()) {
+                        RewardGroup group = dexType.rewardGroups.get(count);
                         ItemStack icon = group.icon;
 
-                        PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
                         String status = "locked";
-                        if (playerData != null) {
-                            if (playerData.claimable_rewards.contains(group.name)) {
-                                status = "claimable";
-                            } else if (playerData.claimed_rewards.contains(group.name)) {
-                                status = "claimed";
-                            }
-                        }
+                        if (progressTracker.claimable_rewards.contains(group.name))
+                            status = "claimable";
+                        else if (progressTracker.claimed_rewards.contains(group.name))
+                            status = "claimed";
 
                         GuiElement group_element = null;
                         for (GuiElement element : RewardGUIConfig.gui_elements) {
-                            if (element.key().equals(status + "_group")) {
+                            if (element.key().equals(status + "_group"))
                                 group_element = element;
-                            }
                         }
 
-                        if (group_element != null) {
-                            icon.applyComponentsFrom(group_element.getComponentMap(player.getUuid(), group));
-                        }
+                        if (group_element != null)
+                            icon.applyComponentsFrom(group_element.getComponentMap(player, group, dexType));
 
                         String finalStatus = status;
                         gui.setSlot(slot, new GuiElementBuilder(icon)
                                 .setCallback((i, clickType, slotActionType) -> {
                                     if (finalStatus.equals("claimable")) {
-                                        playerData.claimable_rewards.removeIf(data -> data.equals(group.name));
-                                        playerData.claimed_rewards.add(group.name);
+                                        progressTracker.claimable_rewards.removeIf(data -> data.equals(group.name));
+                                        progressTracker.claimed_rewards.add(group.name);
 
                                         group.distribute_rewards(player);
 
-                                        DexRewards.INSTANCE.config().updatePlayerData(playerData);
+                                        PlayerDataConfig.updatePlayerData(playerData);
 
-                                        player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_claimed, group)));
+                                        player.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.rewards_claimed, group)));
 
-                                        create_gui(player, page);
+                                        create_gui(player, page, dexType);
                                     }
                                 })
                                 .build());
@@ -147,14 +146,14 @@ public class GuiLayout {
                 count++;
             }
 
-            if (set_groups < DexRewards.INSTANCE.config().reward_groups.size()) {
-                setSlots(gui, next_page_symbol, new GuiElementBuilder(next_item).setCallback((i, clickType, slotActionType) -> create_gui(player, page + 1)).build());
+            if (set_groups < dexType.rewardGroups.size()) {
+                setSlots(gui, next_page_symbol, new GuiElementBuilder(next_item).setCallback((i, clickType, slotActionType) -> create_gui(player, page + 1, dexType)).build());
             } else {
                 setSlots(gui, next_page_symbol, new GuiElementBuilder(background_item).build());
             }
 
             if (page > 0) {
-                setSlots(gui, previous_page_symbol, new GuiElementBuilder(previous_item).setCallback((i, clickType, slotActionType) -> create_gui(player, page - 1)).build());
+                setSlots(gui, previous_page_symbol, new GuiElementBuilder(previous_item).setCallback((i, clickType, slotActionType) -> create_gui(player, page - 1, dexType)).build());
             } else {
                 setSlots(gui, previous_page_symbol, new GuiElementBuilder(background_item).build());
             }

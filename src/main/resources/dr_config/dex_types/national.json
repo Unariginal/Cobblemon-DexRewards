@@ -1,11 +1,13 @@
 {
   "display_name": "National Dex",
   "pokedex": "cobblemon:national",
-  "count_shinies": false,
+  "count_seen": false,
+  "seen_only": false,
+  "count_shiny": false,
   "shiny_only": false,
   "reward_groups": {
     "trainer": {
-      "required_caught_percent": 5.0,
+      "required_percent": 5.0,
       "display_name": "Trainer",
       "icon": "cobblemon:poke_ball",
       "icon_data": {},
@@ -22,7 +24,7 @@
       }
     },
     "rookie": {
-      "required_caught_percent": 10.0,
+      "required_percent": 10.0,
       "display_name": "Rookie",
       "icon": "cobblemon:fast_ball",
       "icon_data": {},
@@ -39,7 +41,7 @@
       }
     },
     "beginner": {
-      "required_caught_percent": 15.0,
+      "required_percent": 15.0,
       "display_name": "Beginner",
       "icon": "cobblemon:great_ball",
       "icon_data": {},
@@ -56,7 +58,7 @@
       }
     },
     "novice": {
-      "required_caught_percent": 20.0,
+      "required_percent": 20.0,
       "display_name": "Novice",
       "icon": "cobblemon:level_ball",
       "icon_data": {},
@@ -73,7 +75,7 @@
       }
     },
     "ranger": {
-      "required_caught_percent": 25.0,
+      "required_percent": 25.0,
       "display_name": "Ranger",
       "icon": "cobblemon:ultra_ball",
       "icon_data": {},
@@ -90,7 +92,7 @@
       }
     },
     "collector": {
-      "required_caught_percent": 30.0,
+      "required_percent": 30.0,
       "display_name": "Collector",
       "icon": "cobblemon:lure_ball",
       "icon_data": {},
@@ -107,7 +109,7 @@
       }
     },
     "apprentice": {
-      "required_caught_percent": 35.0,
+      "required_percent": 35.0,
       "display_name": "Apprentice",
       "icon": "cobblemon:safari_ball",
       "icon_data": {},
@@ -124,7 +126,7 @@
       }
     },
     "expert": {
-      "required_caught_percent": 40.0,
+      "required_percent": 40.0,
       "display_name": "Expert",
       "icon": "cobblemon:heavy_ball",
       "icon_data": {},
@@ -141,7 +143,7 @@
       }
     },
     "veteran": {
-      "required_caught_percent": 45.0,
+      "required_percent": 45.0,
       "display_name": "Veteran",
       "icon": "cobblemon:love_ball",
       "icon_data": {},
@@ -158,7 +160,7 @@
       }
     },
     "sage": {
-      "required_caught_percent": 50.0,
+      "required_percent": 50.0,
       "display_name": "Sage",
       "icon": "cobblemon:moon_ball",
       "icon_data": {},
@@ -175,7 +177,7 @@
       }
     },
     "professor": {
-      "required_caught_percent": 55.0,
+      "required_percent": 55.0,
       "display_name": "Professor",
       "icon": "cobblemon:repeat_ball",
       "icon_data": {},
@@ -192,7 +194,7 @@
       }
     },
     "commander": {
-      "required_caught_percent": 60.0,
+      "required_percent": 60.0,
       "display_name": "Commander",
       "icon": "cobblemon:timer_ball",
       "icon_data": {},
@@ -209,7 +211,7 @@
       }
     },
     "elite": {
-      "required_caught_percent": 65.0,
+      "required_percent": 65.0,
       "display_name": "Elite",
       "icon": "cobblemon:luxury_ball",
       "icon_data": {},
@@ -226,7 +228,7 @@
       }
     },
     "executive": {
-      "required_caught_percent": 70.0,
+      "required_percent": 70.0,
       "display_name": "Executive",
       "icon": "cobblemon:premier_ball",
       "icon_data": {},
@@ -243,7 +245,7 @@
       }
     },
     "master": {
-      "required_caught_percent": 75.0,
+      "required_percent": 75.0,
       "display_name": "Master",
       "icon": "cobblemon:dusk_ball",
       "icon_data": {},
@@ -260,7 +262,7 @@
       }
     },
     "baron": {
-      "required_caught_percent": 80.0,
+      "required_percent": 80.0,
       "display_name": "Baron",
       "icon": "cobblemon:quick_ball",
       "icon_data": {},
@@ -277,7 +279,7 @@
       }
     },
     "duke": {
-      "required_caught_percent": 85.0,
+      "required_percent": 85.0,
       "display_name": "Duke",
       "icon": "cobblemon:beast_ball",
       "icon_data": {},
@@ -294,7 +296,7 @@
       }
     },
     "champion": {
-      "required_caught_percent": 90.0,
+      "required_percent": 90.0,
       "display_name": "Champion",
       "icon": "cobblemon:master_ball",
       "icon_data": {},
@@ -311,7 +313,7 @@
       }
     },
     "world_champion": {
-      "required_caught_percent": 95.0,
+      "required_percent": 95.0,
       "display_name": "World Champion",
       "icon": "cobblemon:cherish_ball",
       "icon_data": {},
@@ -328,7 +330,7 @@
       }
     },
     "arceus": {
-      "required_caught_percent": 100.0,
+      "required_percent": 100.0,
       "display_name": "Arceus",
       "icon": "minecraft:nether_star",
       "icon_data": {},

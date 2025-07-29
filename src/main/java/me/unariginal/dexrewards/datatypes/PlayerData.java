@@ -18,13 +18,13 @@ public class PlayerData {
 
     public static class ProgressTracker {
         public String dex_type;
-        public int caught_count;
+        public int progress_count;
         public List<String> claimed_rewards;
         public List<String> claimable_rewards;
 
-        public ProgressTracker(String dex_type, int caught_count, List<String> claimed_rewards, List<String> claimable_rewards) {
+        public ProgressTracker(String dex_type, int progress_count, List<String> claimed_rewards, List<String> claimable_rewards) {
             this.dex_type = dex_type;
-            this.caught_count = caught_count;
+            this.progress_count = progress_count;
             this.claimed_rewards = claimed_rewards;
             this.claimable_rewards = claimable_rewards;
         }
@@ -34,6 +34,15 @@ public class PlayerData {
         this.uuid = uuid;
         this.username = username;
         this.pokedex_progress = pokedex_progress;
+    }
+
+    public ProgressTracker getProgress(String dex_type) {
+        for (ProgressTracker tracker : pokedex_progress) {
+            if (tracker.dex_type.equals(dex_type)) {
+                return tracker;
+            }
+        }
+        return null;
     }
 
     public void updateCaughtCount() {
@@ -53,7 +62,7 @@ public class PlayerData {
 
             int caughtCount = dex.getDexCalculatedValue(Identifier.of(dexType.pokedex), CaughtCount.INSTANCE);
 
-            progressTracker.caught_count = caughtCount + seenCount + shinyCount;
+            progressTracker.progress_count = caughtCount + seenCount + shinyCount;
         }
     }
 
@@ -69,12 +78,11 @@ public class PlayerData {
                 List<String> newClaimableRewards = new ArrayList<>();
                 for (RewardGroup group : dexType.rewardGroups) {
                     if (!progressTracker.claimed_rewards.contains(group.name)) {
-                        // TODO: Temporary "Dex Total", remember to get the correct number
-                        double percentComplete = ((double) progressTracker.caught_count / DexRewards.DEX_TOTAL) * 100.0;
+                        double percentComplete = ((double) progressTracker.progress_count / dexType.getTotal()) * 100.0;
                         if (percentComplete >= group.required_percent) {
                             newClaimableRewards.add(group.name);
                             if (!progressTracker.claimable_rewards.contains(group.name)) {
-                                player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.reward_claimable, group)));
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.reward_claimable, group)));
                             }
                         }
                     }
@@ -82,7 +90,7 @@ public class PlayerData {
 
                 progressTracker.claimable_rewards = newClaimableRewards;
                 if (oldSize < progressTracker.claimable_rewards.size())
-                    player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_to_claim)));
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.rewards_to_claim)));
             }
         }
     }

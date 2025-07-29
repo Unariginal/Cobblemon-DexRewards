@@ -1,6 +1,7 @@
 package me.unariginal.dexrewards.datatypes;
 
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
+import net.minecraft.util.Identifier;
 
 import java.util.List;
 
@@ -23,5 +24,24 @@ public class DexType {
         this.countShiny = countShiny;
         this.shinyOnly = shinyOnly;
         this.rewardGroups = rewardGroups;
+    }
+
+    public int getTotal() {
+        int total = CustomPokedexValueCalculators.getTotalEntries(Identifier.of(pokedex));
+        if (countShiny && !shinyOnly) {
+            total += CustomPokedexValueCalculators.getTotalShinyEntries(Identifier.of(pokedex));
+        } else if (countShiny) {
+            total = CustomPokedexValueCalculators.getTotalShinyEntries(Identifier.of(pokedex));
+        }
+        return total;
+    }
+
+    public RewardGroup getGroup(String groupName) {
+        for (RewardGroup group : rewardGroups) {
+            if (group.name.equals(groupName)) {
+                return group;
+            }
+        }
+        return null;
     }
 }

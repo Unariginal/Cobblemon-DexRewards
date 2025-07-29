@@ -79,19 +79,6 @@ public class CustomPokedexValueCalculators {
         }
     }
 
-    public static int getTotalShinyEntries(Identifier dexId) {
-        PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(dexId);
-        AtomicInteger totalEntries = new AtomicInteger(0);
-        dexDef.getEntries().forEach(dexEntry -> totalEntries.addAndGet(dexEntry.getForms().size()));
-        return totalEntries.get();
-    }
-
-    public static int getTotalShinyEntries(Map<Identifier, PokedexEntry> map) {
-        AtomicInteger totalEntries = new AtomicInteger(0);
-        map.values().forEach(pokedexEntry -> totalEntries.addAndGet(pokedexEntry.getForms().size()));
-        return totalEntries.get();
-    }
-
     /* Temporarily implementing the percentage fix from 1.7 until we update */
     public static final class SeenPercent implements PokedexValueCalculator<Float>, GlobalPokedexValueCalculator<Float> {
         @Override
@@ -127,5 +114,23 @@ public class CustomPokedexValueCalculators {
         public Float calculate(@NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> map) {
             return ((float) map.values().stream().filter(pokedexEntry -> dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()).equals(PokedexEntryProgress.CAUGHT)).toList().size() / map.size()) * 100F;
         }
+    }
+
+    public static int getTotalShinyEntries(Identifier dexId) {
+        PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(dexId);
+        AtomicInteger totalEntries = new AtomicInteger(0);
+        dexDef.getEntries().forEach(dexEntry -> totalEntries.addAndGet(dexEntry.getForms().size()));
+        return totalEntries.get();
+    }
+
+    public static int getTotalShinyEntries(Map<Identifier, PokedexEntry> map) {
+        AtomicInteger totalEntries = new AtomicInteger(0);
+        map.values().forEach(pokedexEntry -> totalEntries.addAndGet(pokedexEntry.getForms().size()));
+        return totalEntries.get();
+    }
+
+    public static int getTotalEntries(Identifier dexId) {
+        PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(dexId);
+        return dexDef.getEntries().size();
     }
 }

@@ -323,9 +323,20 @@ public class Config {
 
                 PlayerDataConfig.player_data.add(new PlayerData(uuid, username, List.of(tracker)));
 
+                File player_data_folder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/player_data/").toFile();
+                if (!player_data_folder.exists()) {
+                    player_data_folder.mkdir();
+                }
+
                 File new_player_data_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/player_data/" + uuid + ".json").toFile();
 
-                file.delete();
+                try {
+                    if (!file.delete()) {
+                        DexRewards.LOGGER.error("[DexRewards] Failed to delete old player data file.");
+                    }
+                } catch (Exception e) {
+                    DexRewards.LOGGER.error("Could not delete old player data file.", e);
+                }
                 new_player_data_file.delete();
                 new_player_data_file.createNewFile();
 
@@ -334,6 +345,13 @@ public class Config {
                 gson.toJson(newRoot, writer);
                 writer.close();
             }
+        }
+        try {
+            if (!old_player_data_folder.delete()) {
+                DexRewards.LOGGER.error("[DexRewards] Failed to delete old player data folder.");
+            }
+        } catch (Exception e) {
+            DexRewards.LOGGER.error("Could not delete old player data folder.", e);
         }
     }
 

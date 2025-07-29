@@ -1,36 +1,26 @@
 package me.unariginal.dexrewards.datatypes.guielements;
 
-import me.unariginal.dexrewards.datatypes.Messages;
+import me.unariginal.dexrewards.datatypes.DexType;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
 import me.unariginal.dexrewards.utils.TextUtils;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public record GuiElement(String key, String name, List<String> lore, boolean glint) {
-    public ComponentMap getComponentMap(UUID uuid, RewardGroup group) {
+    public ComponentMap getComponentMap(ServerPlayerEntity player, RewardGroup group, DexType dexType) {
         String parsed_name = name;
-        List<String> parsed_lore = lore;
-        if (uuid != null) {
-            parsed_name = Messages.parse(name, uuid);
-            parsed_lore = new ArrayList<>();
-            for (String line : lore) {
-                parsed_lore.add(Messages.parse(line, uuid));
-            }
-        }
+        parsed_name = TextUtils.parse(parsed_name, player, group, dexType);
 
-        List<String> more_parsed_lore = parsed_lore;
-        if (group != null) {
-            parsed_name = Messages.parse(name, group);
-            parsed_lore = new ArrayList<>();
-            for (String line : more_parsed_lore) {
-                parsed_lore.add(Messages.parse(line, group));
-            }
+        List<String> parsed_lore;
+        parsed_lore = new ArrayList<>();
+        for (String line : lore) {
+            parsed_lore.add(TextUtils.parse(line, player, group, dexType));
         }
 
         List<Text> lore_text = new ArrayList<>();

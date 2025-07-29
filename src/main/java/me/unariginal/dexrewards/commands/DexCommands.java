@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.pokedex.entry.PokedexEntry;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.pokemon.labels.CobblemonPokemonLabels;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -12,6 +13,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import me.unariginal.dexrewards.DexRewards;
 import me.unariginal.dexrewards.config.PlayerDataConfig;
 import me.unariginal.dexrewards.config.RewardGUIConfig;
+import me.unariginal.dexrewards.datatypes.DexType;
 import me.unariginal.dexrewards.datatypes.Messages;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.utils.TextUtils;
@@ -34,13 +36,30 @@ public class DexCommands {
                                             .requires(Permissions.require("dexrewards.reload", 4))
                                             .executes(ctx -> {
                                                 DexRewards.INSTANCE.reload();
-                                                ctx.getSource().sendMessage(TextUtils.deserialize(Messages.parse(Messages.reload)));
+                                                ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.reload)));
                                                 return 1;
                                             })
                             )
                             .then(
                                     CommandManager.literal("rewards")
-                                            .executes(this::rewards)
+                                            .executes(ctx -> rewards(ctx, DexRewards.INSTANCE.dexTypes().dexTypes.getFirst()))
+                                            .then(
+                                                    CommandManager.argument("dex-type", StringArgumentType.string())
+                                                            .suggests((ctx, builder) -> {
+                                                                for (DexType dexType : DexRewards.INSTANCE.dexTypes().dexTypes) {
+                                                                    builder.suggest(dexType.name);
+                                                                }
+                                                                return builder.buildFuture();
+                                                            })
+                                                            .executes(ctx -> {
+                                                                String dexTypeName = StringArgumentType.getString(ctx, "dex-type");
+                                                                DexType dexType = DexRewards.INSTANCE.dexTypes().getDexType(dexTypeName);
+                                                                if (dexType != null) {
+                                                                    return rewards(ctx, dexType);
+                                                                }
+                                                                return 0;
+                                                            })
+                                            )
                             )
                             .then(
                                     CommandManager.literal("generate")
@@ -69,14 +88,18 @@ public class DexCommands {
         });
     }
 
-    private int rewards(CommandContext<ServerCommandSource> ctx) {
+    private int rewards(CommandContext<ServerCommandSource> ctx, DexType dexType) {
         if (ctx.getSource().isExecutedByPlayer()) {
             ServerPlayerEntity player = ctx.getSource().getPlayer();
             if (player != null) {
-                RewardGUIConfig.gui_layout.create_gui(player, 0);
+                try {
+                    RewardGUIConfig.gui_layout.create_gui(player, 0, dexType);
+                } catch (Exception e) {
+                    DexRewards.LOGGER.error("[DexRewards] Error running rewards command.", e);
+                }
             }
         }
-        return 0;
+        return 1;
     }
 
     private int reset(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
@@ -85,7 +108,7 @@ public class DexCommands {
             PlayerData data = PlayerDataConfig.getPlayerData(target.getUuid());
             if (data != null) {
                 for (PlayerData.ProgressTracker progressTracker : data.pokedex_progress) {
-                    progressTracker.caught_count = 0;
+                    progressTracker.progress_count = 0;
                     progressTracker.claimable_rewards.clear();
                     progressTracker.claimed_rewards.clear();
                 }
@@ -94,8 +117,8 @@ public class DexCommands {
                 data.updateClaimableRewards();
 
                 PlayerDataConfig.updatePlayerData(data);
-                ctx.getSource().sendMessage(TextUtils.deserialize(Messages.parse(Messages.reset_sender, target.getUuid())));
-                target.sendMessage(TextUtils.deserialize(Messages.parse(Messages.reset_target, target.getUuid())));
+                ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.reset_sender, target)));
+                target.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.reset_target, target)));
             }
         }
         return 1;
@@ -110,7 +133,7 @@ public class DexCommands {
                 data.updateClaimableRewards();
 
                 PlayerDataConfig.updatePlayerData(data);
-                ctx.getSource().sendMessage(TextUtils.deserialize(Messages.parse(Messages.update_command, target.getUuid())));
+                ctx.getSource().sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.update_command, target)));
             }
         }
         return 1;

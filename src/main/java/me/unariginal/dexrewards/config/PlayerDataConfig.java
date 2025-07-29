@@ -21,6 +21,11 @@ public class PlayerDataConfig {
 
     public static void updatePlayerData(PlayerData playerData) {
         try {
+            File player_data_folder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/player_data/").toFile();
+            if (!player_data_folder.exists()) {
+                player_data_folder.mkdir();
+            }
+
             File player_data_file = FabricLoader.getInstance().getConfigDir().resolve("DexRewards/player_data/" + playerData.uuid.toString() + ".json").toFile();
             player_data_file.createNewFile();
 
@@ -31,7 +36,7 @@ public class PlayerDataConfig {
             JsonObject pokedex_progress = new JsonObject();
             for (PlayerData.ProgressTracker progressTracker : playerData.pokedex_progress) {
                 JsonObject dex_progress = new JsonObject();
-                dex_progress.addProperty("caught_count", progressTracker.caught_count);
+                dex_progress.addProperty("caught_count", progressTracker.progress_count);
                 JsonArray claimed_rewards = new JsonArray();
                 for (String group : progressTracker.claimed_rewards) {
                     claimed_rewards.add(group);
