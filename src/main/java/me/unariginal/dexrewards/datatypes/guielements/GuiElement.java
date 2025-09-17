@@ -14,23 +14,23 @@ import java.util.List;
 
 public record GuiElement(String key, String name, List<String> lore, boolean glint) {
     public ComponentMap getComponentMap(ServerPlayerEntity player, RewardGroup group, DexType dexType) {
-        String parsed_name = name;
-        parsed_name = TextUtils.parse(parsed_name, player, group, dexType);
+        String parsedName = name;
+        parsedName = TextUtils.parse(parsedName, player, group, dexType);
 
-        List<String> parsed_lore;
-        parsed_lore = new ArrayList<>();
+        List<String> parsedLore;
+        parsedLore = new ArrayList<>();
         for (String line : lore) {
-            parsed_lore.add(TextUtils.parse(line, player, group, dexType));
+            parsedLore.add(TextUtils.parse(line, player, group, dexType));
         }
 
-        List<Text> lore_text = new ArrayList<>();
-        for (String line : parsed_lore) {
-            lore_text.add(TextUtils.deserialize(line));
+        List<Text> loreText = new ArrayList<>();
+        for (String line : parsedLore) {
+            loreText.add(TextUtils.deserialize(line));
         }
 
         return ComponentMap.builder()
-                .add(DataComponentTypes.CUSTOM_NAME, TextUtils.deserialize(parsed_name))
-                .add(DataComponentTypes.LORE, new LoreComponent(lore_text))
+                .add(DataComponentTypes.CUSTOM_NAME, TextUtils.deserialize(parsedName))
+                .add(DataComponentTypes.LORE, new LoreComponent(loreText))
                 .add(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, glint)
                 .build();
     }

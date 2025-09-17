@@ -1,7 +1,7 @@
 plugins {
-    id 'fabric-loom' version '1.11.0-alpha.5'
+    id 'fabric-loom' version '1.11.2'
     id 'maven-publish'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
 }
 
 version = project.mod_version
@@ -47,19 +47,21 @@ dependencies {
     modImplementation include("eu.pb4:placeholder-api:2.4.1+1.21")
     modImplementation include("eu.pb4:sgui:1.6.1+1.21.1")
 
-    modImplementation "com.cobblemon:fabric:1.6.1+1.21.1"
+    modImplementation "com.cobblemon:fabric:${project.cobblemon_version}"
 }
 
 processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
+    inputs.property "cobblemon_version", project.cobblemon_version
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+                "loader_version": project.loader_version,
+                "cobblemon_version": project.cobblemon_version
     }
 }
 

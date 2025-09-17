@@ -2,7 +2,6 @@ package me.unariginal.dexrewards.config;
 
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
-import me.unariginal.dexrewards.DexRewards;
 import me.unariginal.dexrewards.datatypes.guielements.GuiElement;
 import me.unariginal.dexrewards.datatypes.guielements.GuiLayout;
 import me.unariginal.dexrewards.utils.MiscUtils;
@@ -14,19 +13,12 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: I think I'm too lazy to but I should swap this whole config to the Gson read method
 public class RewardGUIConfig {
-    public static List<GuiElement> gui_elements = new ArrayList<>();
-    public static GuiLayout gui_layout;
+    public static List<GuiElement> guiElements = new ArrayList<>();
+    public static GuiLayout guiLayout;
 
-    public RewardGUIConfig() {
-        try {
-            loadGui();
-        } catch (IOException e) {
-            DexRewards.LOGGER.error("Failed to load reward gui config!", e);
-        }
-    }
-
-    private void loadGui() throws IOException {
+    public static void load() throws IOException {
         File rootFolder = FabricLoader.getInstance().getConfigDir().resolve("DexRewards").toFile();
         if (!rootFolder.exists())
             rootFolder.mkdirs();
@@ -49,7 +41,7 @@ public class RewardGUIConfig {
 
     public static JsonObject guiMovementCompatMethod(JsonObject root) {
         JsonObject newRoot = new JsonObject();
-        String title = "<gold><bold>%reward_name% Rewards";
+        String title = "<gold><bold>%dex_type% Rewards";
         if (root.has("title"))
             title = root.get("title").getAsString();
         newRoot.addProperty("title", title);
@@ -107,7 +99,6 @@ public class RewardGUIConfig {
         page_layout_symbols.addProperty("next_page", next_page_symbol);
         newRoot.add("page_layout_symbols", page_layout_symbols);
 
-
         JsonObject background = new JsonObject();
         if (root.has("background"))
             background = root.get("background").getAsJsonObject();
@@ -158,10 +149,10 @@ public class RewardGUIConfig {
                 element_object = root.get(element).getAsJsonObject();
 
             String name = switch (element) {
-                case "player_info" -> "<light_purple>%reward_name% Progress Info";
+                case "player_info" -> "<light_purple>%dex_type% Progress Info";
                 case "claimed_group" -> "<green><bold>%group.name% (%group.percent%%)";
                 case "claimable_group" -> "<gold><bold>%group.name% (%group.percent%%)";
-                case "locked_group" -> "<red><bold>%group.name% (%group.percent%%";
+                case "locked_group" -> "<red><bold>%group.name% (%group.percent%%)";
                 default -> "";
             };
             if (element_object.has("name"))
@@ -200,7 +191,7 @@ public class RewardGUIConfig {
 
             newRoot.add(element, element_object);
 
-            gui_elements.add(new GuiElement(element, name, lore, glint));
+            guiElements.add(new GuiElement(element, name, lore, glint));
         }
 
         JsonObject navigation = new JsonObject();
@@ -269,7 +260,7 @@ public class RewardGUIConfig {
 
         ItemStack next_item = MiscUtils.generateItem(next_item_id, next_name, next_lore, next_item_data);
 
-        gui_layout = new GuiLayout(title, size, page_layout, background_symbol, player_info_symbol, group_symbol, previous_page_symbol, next_page_symbol, background_item, previous_item, next_item);
+        guiLayout = new GuiLayout(title, size, page_layout, background_symbol, player_info_symbol, group_symbol, previous_page_symbol, next_page_symbol, background_item, previous_item, next_item);
 
         newRoot.add("navigation", navigation);
 

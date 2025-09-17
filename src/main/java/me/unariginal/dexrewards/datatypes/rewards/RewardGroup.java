@@ -8,21 +8,21 @@ import java.util.List;
 public class RewardGroup {
     public String name;
     public ItemStack icon;
-    public double required_percent;
+    public double requiredPercent;
     public String displayName;
     public List<Reward> rewards;
 
-    public RewardGroup(String name, ItemStack icon, double required_percent, String displayName, List<Reward> rewards) {
+    public RewardGroup(String name, ItemStack icon, double requiredPercent, String displayName, List<Reward> rewards) {
         this.name = name;
         this.icon = icon;
-        this.required_percent = required_percent;
+        this.requiredPercent = requiredPercent;
         this.displayName = displayName;
         this.rewards = rewards;
     }
 
-    public void distribute_rewards(ServerPlayerEntity player) {
+    public void distributeRewards(ServerPlayerEntity player) {
         for (Reward reward : rewards) {
-            reward.distribute_reward(player);
+            reward.distributeReward(player);
         }
     }
 }

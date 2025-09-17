@@ -1,15 +1,18 @@
 {
   "display_name": "National Dex",
   "pokedex": "cobblemon:national",
-  "count_seen": false,
-  "seen_only": false,
-  "count_shiny": false,
-  "shiny_only": false,
+  "require_caught": true,
+  "require_shiny": false,
+  "valid_species": [],
+  "ignored_species": [],
+  "valid_labels": [],
+  "ignored_labels": [],
   "reward_groups": {
     "trainer": {
       "required_percent": 5.0,
       "display_name": "Trainer",
       "icon": "cobblemon:poke_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -27,6 +30,7 @@
       "required_percent": 10.0,
       "display_name": "Rookie",
       "icon": "cobblemon:fast_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -44,6 +48,7 @@
       "required_percent": 15.0,
       "display_name": "Beginner",
       "icon": "cobblemon:great_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -61,6 +66,7 @@
       "required_percent": 20.0,
       "display_name": "Novice",
       "icon": "cobblemon:level_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -78,6 +84,7 @@
       "required_percent": 25.0,
       "display_name": "Ranger",
       "icon": "cobblemon:ultra_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -95,6 +102,7 @@
       "required_percent": 30.0,
       "display_name": "Collector",
       "icon": "cobblemon:lure_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -112,6 +120,7 @@
       "required_percent": 35.0,
       "display_name": "Apprentice",
       "icon": "cobblemon:safari_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -129,6 +138,7 @@
       "required_percent": 40.0,
       "display_name": "Expert",
       "icon": "cobblemon:heavy_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -146,6 +156,7 @@
       "required_percent": 45.0,
       "display_name": "Veteran",
       "icon": "cobblemon:love_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -163,6 +174,7 @@
       "required_percent": 50.0,
       "display_name": "Sage",
       "icon": "cobblemon:moon_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -180,6 +192,7 @@
       "required_percent": 55.0,
       "display_name": "Professor",
       "icon": "cobblemon:repeat_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -197,6 +210,7 @@
       "required_percent": 60.0,
       "display_name": "Commander",
       "icon": "cobblemon:timer_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -214,6 +228,7 @@
       "required_percent": 65.0,
       "display_name": "Elite",
       "icon": "cobblemon:luxury_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -231,6 +246,7 @@
       "required_percent": 70.0,
       "display_name": "Executive",
       "icon": "cobblemon:premier_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -248,6 +264,7 @@
       "required_percent": 75.0,
       "display_name": "Master",
       "icon": "cobblemon:dusk_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -265,6 +282,7 @@
       "required_percent": 80.0,
       "display_name": "Baron",
       "icon": "cobblemon:quick_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -282,6 +300,7 @@
       "required_percent": 85.0,
       "display_name": "Duke",
       "icon": "cobblemon:beast_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -299,6 +318,7 @@
       "required_percent": 90.0,
       "display_name": "Champion",
       "icon": "cobblemon:master_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -316,6 +336,7 @@
       "required_percent": 95.0,
       "display_name": "World Champion",
       "icon": "cobblemon:cherish_ball",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_item_reward": {
@@ -333,6 +354,7 @@
       "required_percent": 100.0,
       "display_name": "Arceus",
       "icon": "minecraft:nether_star",
+      "icon_lore": [],
       "icon_data": {},
       "rewards": {
         "example_command_reward": {

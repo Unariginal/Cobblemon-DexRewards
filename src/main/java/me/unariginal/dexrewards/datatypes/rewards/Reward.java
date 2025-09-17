@@ -13,6 +13,6 @@ public class Reward {
         this.displayName = displayName;
     }
 
-    public void distribute_reward(ServerPlayerEntity player) {
+    public void distributeReward(ServerPlayerEntity player) {
     }
 }

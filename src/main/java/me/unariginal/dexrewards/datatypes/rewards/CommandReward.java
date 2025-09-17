@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class CommandReward extends Reward {
-    List<String> commands;
+    public List<String> commands;
 
     public CommandReward(String name, String type, String displayName, List<String> commands) {
         super(name, type, displayName);
@@ -16,7 +16,7 @@ public class CommandReward extends Reward {
     }
 
     @Override
-    public void distribute_reward(ServerPlayerEntity player) {
+    public void distributeReward(ServerPlayerEntity player) {
         for (String command : commands) {
             command = command.replaceAll("%player%", player.getNameForScoreboard());
             CommandManager cmdManager = Objects.requireNonNull(player.getServer()).getCommandManager();

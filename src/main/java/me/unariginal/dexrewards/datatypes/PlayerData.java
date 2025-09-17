@@ -1,8 +1,12 @@
 package me.unariginal.dexrewards.datatypes;
 
 import com.cobblemon.mod.common.Cobblemon;
-import com.cobblemon.mod.common.api.pokedex.*;
+import com.cobblemon.mod.common.api.pokedex.Dexes;
+import com.cobblemon.mod.common.api.pokedex.PokedexManager;
+import com.cobblemon.mod.common.api.pokedex.entry.PokedexEntry;
 import me.unariginal.dexrewards.DexRewards;
+import me.unariginal.dexrewards.config.DexTypesConfig;
+import me.unariginal.dexrewards.config.MessagesConfig;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
 import me.unariginal.dexrewards.utils.TextUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -14,31 +18,31 @@ import java.util.*;
 public class PlayerData {
     public UUID uuid;
     public String username;
-    public List<ProgressTracker> pokedex_progress;
+    public List<ProgressTracker> pokedexProgress;
 
     public static class ProgressTracker {
-        public String dex_type;
-        public int progress_count;
-        public List<String> claimed_rewards;
-        public List<String> claimable_rewards;
+        public String dexType;
+        public int progressCount;
+        public List<String> claimedRewards;
+        public List<String> claimableRewards;
 
-        public ProgressTracker(String dex_type, int progress_count, List<String> claimed_rewards, List<String> claimable_rewards) {
-            this.dex_type = dex_type;
-            this.progress_count = progress_count;
-            this.claimed_rewards = claimed_rewards;
-            this.claimable_rewards = claimable_rewards;
+        public ProgressTracker(String dexType, int progressCount, List<String> claimedRewards, List<String> claimableRewards) {
+            this.dexType = dexType;
+            this.progressCount = progressCount;
+            this.claimedRewards = claimedRewards;
+            this.claimableRewards = claimableRewards;
         }
     }
 
-    public PlayerData(UUID uuid, String username, List<ProgressTracker> pokedex_progress) {
+    public PlayerData(UUID uuid, String username, List<ProgressTracker> pokedexProgress) {
         this.uuid = uuid;
         this.username = username;
-        this.pokedex_progress = pokedex_progress;
+        this.pokedexProgress = pokedexProgress;
     }
 
-    public ProgressTracker getProgress(String dex_type) {
-        for (ProgressTracker tracker : pokedex_progress) {
-            if (tracker.dex_type.equals(dex_type)) {
+    public ProgressTracker getProgress(String dexType) {
+        for (ProgressTracker tracker : pokedexProgress) {
+            if (tracker.dexType.equals(dexType)) {
                 return tracker;
             }
         }
@@ -48,49 +52,59 @@ public class PlayerData {
     public void updateCaughtCount() {
         PokedexManager dex = Cobblemon.INSTANCE.getPlayerDataManager().getPokedexData(uuid);
 
-        for (ProgressTracker progressTracker : pokedex_progress) {
-            DexType dexType = DexRewards.INSTANCE.dexTypes().getDexType(progressTracker.dex_type);
+        for (ProgressTracker progressTracker : pokedexProgress) {
+            DexType dexType = DexTypesConfig.getDexType(progressTracker.dexType);
             if (dexType == null) continue;
 
-            int seenCount = 0;
-            if (dexType.countSeen)
-                seenCount = dex.getDexCalculatedValue(Identifier.of(dexType.pokedex), SeenCount.INSTANCE);
+            Dexes.INSTANCE.getDexEntryMap().values().forEach(dexEntry ->
+                    dex.getDexCalculatedValue(dexEntry.getId(), com.cobblemon.mod.common.api.pokedex.CaughtPercent.INSTANCE)
+            );
+            List<PokedexEntry> pokedexEntries = Dexes.INSTANCE.getDexEntryMap().get(Identifier.of(dexType.pokedex)).getEntries();
+            Map<Identifier, PokedexEntry> pokedexEntryMap = new HashMap<>();
+            for (PokedexEntry pokedexEntry : pokedexEntries) {
+                pokedexEntryMap.put(pokedexEntry.getId(), pokedexEntry);
+            }
 
-            int shinyCount = 0;
-            if (dexType.countShiny)
-                shinyCount = dex.getDexCalculatedValue(Identifier.of(dexType.pokedex), new ShinyCount());
+            int count;
+            if (dexType.requireCaught && dexType.requireShiny) {
+                count = new CaughtShinyCount().calculate(dexType, dex, pokedexEntryMap);
+            } else if (dexType.requireCaught) {
+                count = new CaughtCount().calculate(dexType, dex, pokedexEntryMap);
+            } else if (dexType.requireShiny) {
+                count = new SeenShinyCount().calculate(dexType, dex, pokedexEntryMap);
+            } else {
+                count = new SeenCount().calculate(dexType, dex, pokedexEntryMap);
+            }
 
-            int caughtCount = dex.getDexCalculatedValue(Identifier.of(dexType.pokedex), CaughtCount.INSTANCE);
-
-            progressTracker.progress_count = caughtCount + seenCount + shinyCount;
+            progressTracker.progressCount = count;
         }
     }
 
     public void updateClaimableRewards() {
-        for (ProgressTracker progressTracker : pokedex_progress) {
-            DexType dexType = DexRewards.INSTANCE.dexTypes().getDexType(progressTracker.dex_type);
+        for (ProgressTracker progressTracker : pokedexProgress) {
+            DexType dexType = DexTypesConfig.getDexType(progressTracker.dexType);
             if (dexType == null) continue;
 
-            int oldSize = progressTracker.claimable_rewards.size();
+            int oldSize = progressTracker.claimableRewards.size();
 
             ServerPlayerEntity player = DexRewards.INSTANCE.server().getPlayerManager().getPlayer(uuid);
             if (player != null) {
                 List<String> newClaimableRewards = new ArrayList<>();
                 for (RewardGroup group : dexType.rewardGroups) {
-                    if (!progressTracker.claimed_rewards.contains(group.name)) {
-                        double percentComplete = ((double) progressTracker.progress_count / dexType.getTotal()) * 100.0;
-                        if (percentComplete >= group.required_percent) {
+                    if (!progressTracker.claimedRewards.contains(group.name)) {
+                        double percentComplete = ((double) progressTracker.progressCount / DexRewards.INSTANCE.dexTypeTotals.get(dexType)) * 100.0;
+                        if (percentComplete >= group.requiredPercent) {
                             newClaimableRewards.add(group.name);
-                            if (!progressTracker.claimable_rewards.contains(group.name)) {
-                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.reward_claimable, group)));
+                            if (!progressTracker.claimableRewards.contains(group.name)) {
+                                player.sendMessage(TextUtils.deserialize(TextUtils.parse(MessagesConfig.getMessage("reward_claimable"), group)));
                             }
                         }
                     }
                 }
 
-                progressTracker.claimable_rewards = newClaimableRewards;
-                if (oldSize < progressTracker.claimable_rewards.size())
-                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(Messages.rewards_to_claim)));
+                progressTracker.claimableRewards = newClaimableRewards;
+                if (oldSize < progressTracker.claimableRewards.size())
+                    player.sendMessage(TextUtils.deserialize(TextUtils.parse(MessagesConfig.getMessage("rewards_to_claim"))));
             }
         }
     }

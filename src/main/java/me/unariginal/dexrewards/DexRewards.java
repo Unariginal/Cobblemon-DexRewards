@@ -2,13 +2,13 @@ package me.unariginal.dexrewards;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
-import com.cobblemon.mod.common.api.pokedex.entry.DexEntries;
-import com.cobblemon.mod.common.api.pokedex.entry.PokedexEntry;
-import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
-import com.cobblemon.mod.common.pokemon.Species;
+import eu.pb4.placeholders.api.PlaceholderResult;
+import eu.pb4.placeholders.api.Placeholders;
 import kotlin.Unit;
 import me.unariginal.dexrewards.commands.DexCommands;
 import me.unariginal.dexrewards.config.*;
+import me.unariginal.dexrewards.datatypes.CustomPokedexValueCalculators;
+import me.unariginal.dexrewards.datatypes.DexType;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -20,27 +20,20 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.*;
 
 public class DexRewards implements ModInitializer {
-    public final static String MODID = "dexrewards";
-    public final static Logger LOGGER = LoggerFactory.getLogger(MODID);
+    public final static String MOD_ID = "dexrewards";
+    public final static Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static DexRewards INSTANCE;
     public static boolean DEBUG = false;
 
     private FabricServerAudiences audience;
     private MinecraftServer server;
-    private Config config;
-    private MessagesConfig messages;
-    private RewardGUIConfig rewardGUIConfig;
-    private DexTypesConfig dexTypes;
 
-    public static int DEX_TOTAL = DexEntries.INSTANCE.getEntries().size();
-    public static List<Identifier> VALID_DEX_IDS = new ArrayList<>();
+    public Map<DexType, Integer> dexTypeTotals = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -54,7 +47,15 @@ public class DexRewards implements ModInitializer {
 
             reload();
 
-//            Placeholders.register(Identifier.of("pokedex", "total"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(DEX_TOTAL)));
+            for (DexType dexType : DexTypesConfig.dexTypes) {
+                int dexTotal = CustomPokedexValueCalculators.getDexSize(dexType);
+                dexTypeTotals.put(dexType, dexTotal);
+
+                Placeholders.register(
+                        Identifier.of(dexType.name, "total"),
+                        (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexTotal))
+                );
+            }
 //
 //            Placeholders.register(Identifier.of("player", "caught_count"), (ctx, arg) -> {
 //                if (!ctx.hasPlayer())
@@ -117,35 +118,30 @@ public class DexRewards implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler, packetSender, server) -> {
             ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
             if (player != null) {
-                PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
-
-                if (playerData == null)
-                    PlayerDataConfig.updatePlayerData(new PlayerData(player.getUuid(), player.getNameForScoreboard(), List.of()));
-
-                playerData = PlayerDataConfig.getPlayerData(player.getUuid());
-
-                if (playerData != null) {
+                try {
+                    PlayerData playerData = PlayerDataConfig.loadPlayerData(player);
                     playerData.updateCaughtCount();
                     playerData.updateClaimableRewards();
-
-//                    if (!playerData.claimable_rewards.isEmpty()) {
-//                        player.sendMessage(TextUtils.deserialize(Messages.parse(Messages.rewards_to_claim)));
-//                    }
-
                     PlayerDataConfig.updatePlayerData(playerData);
+                } catch (IOException e) {
+                    LOGGER.error("[DexRewards] Failed to load player data for player \"{}\".", player.getNameForScoreboard(), e);
                 }
             }
         });
 
         CobblemonEvents.POKEMON_GAINED.subscribe(Priority.HIGHEST, event -> {
-            UUID player_uuid = event.getPlayerId();
+            try {
+                UUID playerUuid = event.getPlayerId();
 
-            PlayerData playerData = PlayerDataConfig.getPlayerData(player_uuid);
+                PlayerData playerData = PlayerDataConfig.getPlayerData(playerUuid);
 
-            if (playerData != null) {
-                playerData.updateCaughtCount();
-                playerData.updateClaimableRewards();
-                PlayerDataConfig.updatePlayerData(playerData);
+                if (playerData != null) {
+                    playerData.updateCaughtCount();
+                    playerData.updateClaimableRewards();
+                    PlayerDataConfig.updatePlayerData(playerData);
+                }
+            } catch (IOException e) {
+                LOGGER.error("[DexRewards] Failed to update player data for player \"{}\"", event.getPlayerId(), e);
             }
 
             return Unit.INSTANCE;
@@ -153,69 +149,28 @@ public class DexRewards implements ModInitializer {
     }
 
     public void reload() {
-        config = new Config();
-        messages = new MessagesConfig();
-        rewardGUIConfig = new RewardGUIConfig();
-        dexTypes = new DexTypesConfig();
+        try {
+            Config.load();
+            MessagesConfig.load();
+            DexTypesConfig.load();
+            RewardGUIConfig.load();
+        } catch (IOException e) {
+            LOGGER.error("[DexRewards] Failed to load config files.", e);
+        }
 
-        int total = 0;
-        int invalid_total = 0;
-        int unimplemented_total = 0;
+        List<PlayerData> newData = new ArrayList<>(PlayerDataConfig.playerData);
 
-        List<Identifier> valid_identifiers = new ArrayList<>();
-
-        for (Map.Entry<Identifier, PokedexEntry> entry : DexEntries.INSTANCE.getEntries().entrySet()) {
-            Species species = PokemonSpecies.INSTANCE.getByIdentifier(entry.getKey());
-            if (species != null) {
-                if (!config.implemented_only || species.getImplemented()) {
-                    if (!config.species_blacklist.contains(species)) {
-                        boolean valid = true;
-                        for (String label : species.getLabels()) {
-                            if (config.label_blacklist.contains(label)) {
-                                valid = false;
-                            }
-                            if (config.generation_blacklist.contains(label)) {
-                                valid = false;
-                            }
-                        }
-
-                        if (valid) {
-                            total++;
-                            valid_identifiers.add(entry.getKey());
-                        } else {
-                            invalid_total++;
-                        }
-                    } else {
-                        invalid_total++;
-                    }
-                }
-
-                if (!species.getImplemented()) {
-                    unimplemented_total++;
-                }
-            } else {
-                if (config.allow_invalid_species) {
-                    total++;
-                }
-                invalid_total++;
+        for (PlayerData data : newData) {
+            try {
+                data.updateCaughtCount();
+                data.updateClaimableRewards();
+                PlayerDataConfig.updatePlayerData(data);
+            } catch (IOException e) {
+                LOGGER.error("[DexRewards] Failed to update player data for player \"{}\"", data.username, e);
             }
         }
-        DEX_TOTAL = total;
 
-        logInfo("[DexRewards] Total Valid Pokedex Entries: " + DEX_TOTAL);
-        logInfo("[DexRewards] Total Invalid Entries: " + invalid_total);
-        logInfo("[DexRewards] Total Unimplemented: " + unimplemented_total);
-        logInfo("[DexRewards] Total Pokedex Entries: " + (DEX_TOTAL + invalid_total + unimplemented_total));
-
-        VALID_DEX_IDS = valid_identifiers;
-
-        List<PlayerData> new_data = new ArrayList<>(PlayerDataConfig.player_data);
-
-        for (PlayerData data : new_data) {
-            data.updateCaughtCount();
-            data.updateClaimableRewards();
-            PlayerDataConfig.updatePlayerData(data);
-        }
+        PlayerDataConfig.playerData = newData;
     }
 
     public FabricServerAudiences audience() {
@@ -224,18 +179,6 @@ public class DexRewards implements ModInitializer {
 
     public MinecraftServer server() {
         return server;
-    }
-
-    public Config config() {
-        return config;
-    }
-
-    public DexTypesConfig dexTypes() {
-        return dexTypes;
-    }
-
-    public RewardGUIConfig rewardGUIConfig() {
-        return rewardGUIConfig;
     }
 
     public void logInfo(String message) {

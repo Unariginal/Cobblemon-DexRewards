@@ -1,136 +1,172 @@
 package me.unariginal.dexrewards.datatypes;
 
+
 import com.cobblemon.mod.common.api.pokedex.*;
-import com.cobblemon.mod.common.api.pokedex.def.PokedexDef;
-import com.cobblemon.mod.common.api.pokedex.entry.DexEntries;
 import com.cobblemon.mod.common.api.pokedex.entry.PokedexEntry;
+import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
+import com.cobblemon.mod.common.pokemon.Species;
+import me.unariginal.dexrewards.DexRewards;
+import me.unariginal.dexrewards.config.Config;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CustomPokedexValueCalculators {
-    public static final class ShinyCount implements PokedexValueCalculator<Integer>, GlobalPokedexValueCalculator<Integer> {
-        // 1.7
-        // public boolean outputIsPercentage = false;
+    // To filter out unimplemented, invalid, or specific labels, we rewrite these calculator methods
+    // Also to include shiny count calculation
 
-        @Override
-        public Integer calculate(@NotNull AbstractPokedexManager dexManager) {
-            AtomicInteger count = new AtomicInteger(0);
-            dexManager.getSpeciesRecords().values().forEach(dexRecord -> {
-                if (dexRecord.getKnowledge().equals(PokedexEntryProgress.CAUGHT)) {
-                    PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(Identifier.of("cobblemon", "national"));
-                    List<PokedexEntry> pokedexEntries = new ArrayList<>();
-                    dexDef.getEntries().forEach(dexEntry -> {
-                        if (dexEntry != null) {
-                            pokedexEntries.add(dexEntry);
+    /**
+     * Calculates the amount of caught Pokémon (globally or per dex)
+     */
+    public static class CaughtCount {
+        public Integer calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return dex.values().stream()
+                    .filter(pokedexEntry -> isValidSpecies(dexType, pokedexEntry.getSpeciesId()))
+                    .filter(pokedexEntry ->
+                            dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()) == PokedexEntryProgress.CAUGHT
+                    ).toList().size();
+        }
+    }
+
+    /**
+     * Calculates the amount of seen Pokémon (globally or per dex)
+     */
+    public static class SeenCount {
+        public Integer calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return dex.values().stream()
+                    .filter(pokedexEntry -> isValidSpecies(dexType, pokedexEntry.getSpeciesId()))
+                    .filter(pokedexEntry ->
+                            dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()) != PokedexEntryProgress.NONE
+                    ).toList().size();
+        }
+    }
+
+    /**
+     * Calculates the amount of caught shiny Pokémon (globally or per dex)
+     * I'm guessing this is going to be a bit weird because shiny states are by form rather than by species...
+     * So it'll be like, needing to catch 2000 instead of 1025
+     * I believe I counter this by only requiring one of the forms to have a "seenShinyState"
+     * <p>
+     * This method is bad, you can catch a non-shiny and scan a shiny, and it still counts.
+     */
+    public static class CaughtShinyCount {
+        public Integer calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return dex.values().stream()
+                    .filter(pokedexEntry -> isValidSpecies(dexType, pokedexEntry.getSpeciesId()))
+                    .filter(pokedexEntry ->
+                            dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()) == PokedexEntryProgress.CAUGHT && hasSeenShiny(dexManager, pokedexEntry)
+                    ).toList().size();
+        }
+    }
+
+    /**
+     * Calculates the amount of seen shiny Pokémon (globally or per dex)
+     */
+    public static class SeenShinyCount {
+       public Integer calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return dex.values().stream()
+                    .filter(pokedexEntry -> isValidSpecies(dexType, pokedexEntry.getSpeciesId()))
+                    .filter(pokedexEntry ->
+                            dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()) != PokedexEntryProgress.NONE && hasSeenShiny(dexManager, pokedexEntry)
+                    ).toList().size();
+        }
+    }
+
+    /**
+     * Calculates the caught percentage globally or relative to a particular dex
+     */
+    public static class CaughtPercent {
+        public Float calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return new CaughtCount().calculate(dexType, dexManager, dex).floatValue() / DexRewards.INSTANCE.dexTypeTotals.get(dexType) * 100F;
+        }
+    }
+
+    /**
+     * Calculates the seen percentage globally or relative to a particular dex
+     */
+    public static class SeenPercent {
+        public Float calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return new SeenCount().calculate(dexType, dexManager, dex).floatValue() / DexRewards.INSTANCE.dexTypeTotals.get(dexType) * 100F;
+        }
+    }
+
+    /**
+     * Calculates the caught shiny percentage globally or relative to a particular dex
+     */
+    public static class CaughtShinyPercent {
+        public Float calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return new CaughtShinyCount().calculate(dexType, dexManager, dex).floatValue() / DexRewards.INSTANCE.dexTypeTotals.get(dexType) * 100F;
+        }
+    }
+
+    /**
+     * Calculates the seen shiny percentage globally or relative to a particular dex
+     */
+    public static class SeenShinyPercent {
+        public Float calculate(@NotNull DexType dexType, @NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> dex) {
+            return new SeenShinyCount().calculate(dexType, dexManager, dex).floatValue() / DexRewards.INSTANCE.dexTypeTotals.get(dexType) * 100F;
+        }
+    }
+
+    public static int getDexSize(@NotNull DexType dexType) {
+        return Dexes.INSTANCE.getDexEntryMap().get(Identifier.of(dexType.pokedex))
+                .getEntries().stream()
+                .map(PokedexEntry::getSpeciesId)
+                .filter(speciesId -> isValidSpecies(dexType, speciesId))
+                .toList().size();
+    }
+
+    public static boolean hasSeenShiny(@NotNull AbstractPokedexManager dexManager, @NotNull PokedexEntry pokedexEntry) {
+        AtomicBoolean hasSeenShinyState = new AtomicBoolean(false);
+        pokedexEntry.getForms().forEach(form -> {
+            SpeciesDexRecord speciesDexRecord = dexManager.getSpeciesRecord(pokedexEntry.getSpeciesId());
+            if (speciesDexRecord != null) {
+                FormDexRecord formDexRecord = speciesDexRecord.getFormRecord(form.getDisplayForm());
+                if (formDexRecord != null && formDexRecord.hasSeenShinyState(true))
+                    hasSeenShinyState.set(true);
+            }
+        });
+
+        return hasSeenShinyState.get();
+    }
+
+    public static boolean isValidSpecies(@NotNull DexType dexType, @NotNull Identifier speciesId) {
+        Species species = PokemonSpecies.INSTANCE.getByIdentifier(speciesId);
+        if (species != null) {
+            if (!Config.configData.implementedOnly || species.getImplemented()) {
+                if (!dexType.validSpecies.isEmpty() && !dexType.validSpecies.contains(species.showdownId().toLowerCase())) {
+                    return false;
+                }
+                if (dexType.ignoredSpecies.contains(species.showdownId().toLowerCase())) {
+                    return false;
+                }
+                if (!dexType.validLabels.isEmpty()) {
+                    boolean match = false;
+                    for (String label : dexType.validLabels) {
+                        if (species.getLabels().contains(label)) {
+                            match = true;
+                            break;
                         }
-                    });
-                    for (PokedexEntry pokedexEntry : pokedexEntries) {
-                        dexManager.getCaughtForms(pokedexEntry).forEach(caughtForm -> {
-                            Set<String> shinyStates = dexManager.getSeenShinyStates(pokedexEntry, caughtForm);
-                            boolean shiny = !shinyStates.isEmpty() && shinyStates.stream().anyMatch(state -> state.equals("shiny"));
-                            if (shiny) {
-                                count.getAndIncrement();
-                            }
-                        });
+                    }
+                    if (!match) {
+                        return false;
                     }
                 }
-            });
-            return count.get();
-        }
 
-        @Override
-        public Integer calculate(@NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> map) {
-            AtomicInteger count = new AtomicInteger(0);
-            map.values().forEach(dexEntry -> {
-                if (dexManager.getKnowledgeForSpecies(dexEntry.getSpeciesId()).equals(PokedexEntryProgress.CAUGHT)) {
-                    dexManager.getCaughtForms(dexEntry).forEach(caughtForm -> {
-                        Set<String> shinyStates = dexManager.getSeenShinyStates(dexEntry, caughtForm);
-                        boolean shiny = !shinyStates.isEmpty() && shinyStates.stream().anyMatch(state -> state.equals("shiny"));
-                        if (shiny) {
-                            count.getAndIncrement();
-                        }
-                    });
+                for (String label : dexType.ignoredLabels) {
+                    if (species.getLabels().contains(label)) {
+                        return false;
+                    }
                 }
-            });
-            return count.get();
-        }
-    }
-
-    public static final class ShinyPercent implements PokedexValueCalculator<Float>, GlobalPokedexValueCalculator<Float> {
-        // 1.7
-        // public boolean outputIsPercentage = true;
-
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager abstractPokedexManager) {
-            int shinyCount = new ShinyCount().calculate(abstractPokedexManager);
-            return ((float) shinyCount / getTotalShinyEntries(Identifier.of("cobblemon", "national"))) * 100F;
+            } else {
+                return false;
+            }
+        } else {
+            return Config.configData.allowInvalidSpecies;
         }
 
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager abstractPokedexManager, @NotNull Map<Identifier, PokedexEntry> map) {
-            int shinyCount = new ShinyCount().calculate(abstractPokedexManager, map);
-            return ((float) shinyCount / getTotalShinyEntries(map)) * 100F;
-        }
-    }
-
-    /* Temporarily implementing the percentage fix from 1.7 until we update */
-    public static final class SeenPercent implements PokedexValueCalculator<Float>, GlobalPokedexValueCalculator<Float> {
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager dexManager) {
-            AtomicInteger count = new AtomicInteger(0);
-            dexManager.getSpeciesRecords().values().forEach(dexRecord -> {
-                if (!dexRecord.getKnowledge().equals(PokedexEntryProgress.NONE)) {
-                    count.getAndIncrement();
-                }
-            });
-            return ((float) count.get() / DexEntries.INSTANCE.getEntries().values().stream().map(PokedexEntry::getSpeciesId).toList().size()) * 100F;
-        }
-
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> map) {
-            return ((float) map.values().stream().filter(pokedexEntry -> !dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()).equals(PokedexEntryProgress.NONE)).toList().size() / map.size()) * 100F;
-        }
-    }
-
-    public static final class CaughtPercent implements PokedexValueCalculator<Float>, GlobalPokedexValueCalculator<Float> {
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager dexManager) {
-            AtomicInteger count = new AtomicInteger(0);
-            dexManager.getSpeciesRecords().values().forEach(dexRecord -> {
-                if (dexRecord.getKnowledge().equals(PokedexEntryProgress.CAUGHT)) {
-                    count.getAndIncrement();
-                }
-            });
-            return ((float) count.get() / DexEntries.INSTANCE.getEntries().values().stream().map(PokedexEntry::getSpeciesId).toList().size()) * 100F;
-        }
-
-        @Override
-        public Float calculate(@NotNull AbstractPokedexManager dexManager, @NotNull Map<Identifier, PokedexEntry> map) {
-            return ((float) map.values().stream().filter(pokedexEntry -> dexManager.getKnowledgeForSpecies(pokedexEntry.getSpeciesId()).equals(PokedexEntryProgress.CAUGHT)).toList().size() / map.size()) * 100F;
-        }
-    }
-
-    public static int getTotalShinyEntries(Identifier dexId) {
-        PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(dexId);
-        AtomicInteger totalEntries = new AtomicInteger(0);
-        dexDef.getEntries().forEach(dexEntry -> totalEntries.addAndGet(dexEntry.getForms().size()));
-        return totalEntries.get();
-    }
-
-    public static int getTotalShinyEntries(Map<Identifier, PokedexEntry> map) {
-        AtomicInteger totalEntries = new AtomicInteger(0);
-        map.values().forEach(pokedexEntry -> totalEntries.addAndGet(pokedexEntry.getForms().size()));
-        return totalEntries.get();
-    }
-
-    public static int getTotalEntries(Identifier dexId) {
-        PokedexDef dexDef = Dexes.INSTANCE.getDexEntryMap().get(dexId);
-        return dexDef.getEntries().size();
+        return true;
     }
 }

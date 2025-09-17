@@ -13,19 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MiscUtils {
-    public static ItemStack generateItem(String id, String name, List<String> lore, ComponentChanges item_data) {
+    public static ItemStack generateItem(String id, String name, List<String> lore, ComponentChanges itemData) {
         ItemStack stack = Registries.ITEM.get(Identifier.of(id)).getDefaultStack();
 
-        List<Text> lore_text = new ArrayList<>();
+        List<Text> loreText = new ArrayList<>();
         for (String line : lore) {
-            lore_text.add(TextUtils.deserialize(line));
+            loreText.add(TextUtils.deserialize(line));
         }
 
         stack.applyComponentsFrom(ComponentMap.builder()
                 .add(DataComponentTypes.CUSTOM_NAME, TextUtils.deserialize(name))
-                .add(DataComponentTypes.LORE, new LoreComponent(lore_text))
+                .add(DataComponentTypes.LORE, new LoreComponent(loreText))
                 .build());
-        stack.applyChanges(item_data);
+        stack.applyChanges(itemData);
         return stack;
     }
 }

@@ -1,9 +1,9 @@
 package me.unariginal.dexrewards.utils;
 
 import me.unariginal.dexrewards.DexRewards;
+import me.unariginal.dexrewards.config.MessagesConfig;
 import me.unariginal.dexrewards.config.PlayerDataConfig;
 import me.unariginal.dexrewards.datatypes.DexType;
-import me.unariginal.dexrewards.datatypes.Messages;
 import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.datatypes.rewards.Reward;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
@@ -22,13 +22,13 @@ public class TextUtils {
     }
 
     public static String parse(String text) {
-        return text.replaceAll("%prefix%", Messages.prefix);
+        return text.replaceAll("%prefix%", MessagesConfig.messages.prefix);
     }
 
     public static String parse(String text, DexType dexType) {
         return parse(text)
                 .replaceAll("%dex_type%", dexType.displayName)
-                .replaceAll("%pokedex.total%", String.valueOf(dexType.getTotal()));
+                .replaceAll("%pokedex.total%", String.valueOf(DexRewards.INSTANCE.dexTypeTotals.get(dexType)));
     }
 
     public static String parse(String text, ServerPlayerEntity player) {
@@ -39,7 +39,7 @@ public class TextUtils {
     public static String parse(String text, RewardGroup rewardGroup) {
         return parse(text)
                 .replaceAll("%group.name%", rewardGroup != null ? rewardGroup.displayName : "null")
-                .replaceAll("%group.percent%", rewardGroup != null ? String.valueOf(rewardGroup.required_percent) : "null");
+                .replaceAll("%group.percent%", rewardGroup != null ? String.valueOf(rewardGroup.requiredPercent) : "null");
     }
 
     public static String parse(String text, Reward reward) {
@@ -61,15 +61,15 @@ public class TextUtils {
             if (progressTracker != null) {
                 String group = "None";
                 for (RewardGroup rewardGroup : dexType.rewardGroups) {
-                    if (progressTracker.claimed_rewards.contains(rewardGroup.name)) {
+                    if (progressTracker.claimedRewards.contains(rewardGroup.name)) {
                         group = rewardGroup.displayName;
                     }
                 }
 
                 text = text
                         .replaceAll("%player.reward_group%", group)
-                        .replaceAll("%player.dex_count%", String.valueOf(progressTracker.progress_count))
-                        .replaceAll("%player.dex_percent%", new DecimalFormat("#.##").format(((double) progressTracker.progress_count / dexType.getTotal()) * 100));
+                        .replaceAll("%player.dex_count%", String.valueOf(progressTracker.progressCount))
+                        .replaceAll("%player.dex_percent%", new DecimalFormat("#.##").format(((double) progressTracker.progressCount / DexRewards.INSTANCE.dexTypeTotals.get(dexType)) * 100));
             }
         }
         return text;

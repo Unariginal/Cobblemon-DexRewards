@@ -4,15 +4,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class ItemReward extends Reward {
-    public ItemStack reward_item;
+    public ItemStack rewardItem;
 
-    public ItemReward(String name, String type, String displayName, ItemStack reward_item) {
+    public ItemReward(String name, String type, String displayName, ItemStack rewardItem) {
         super(name, type, displayName);
-        this.reward_item = reward_item;
+        this.rewardItem = rewardItem;
     }
 
     @Override
-    public void distribute_reward(ServerPlayerEntity player) {
-        player.getInventory().offerOrDrop(reward_item);
+    public void distributeReward(ServerPlayerEntity player) {
+        player.getInventory().offerOrDrop(rewardItem);
     }
 }
