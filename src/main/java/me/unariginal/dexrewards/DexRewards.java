@@ -46,16 +46,6 @@ public class DexRewards implements ModInitializer {
             this.audience = FabricServerAudiences.of(server);
 
             reload();
-
-            for (DexType dexType : DexTypesConfig.dexTypes) {
-                int dexTotal = CustomPokedexValueCalculators.getDexSize(dexType);
-                dexTypeTotals.put(dexType, dexTotal);
-
-                Placeholders.register(
-                        Identifier.of(dexType.name, "total"),
-                        (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexTotal))
-                );
-            }
 //
 //            Placeholders.register(Identifier.of("player", "caught_count"), (ctx, arg) -> {
 //                if (!ctx.hasPlayer())
@@ -150,27 +140,42 @@ public class DexRewards implements ModInitializer {
 
     public void reload() {
         try {
+            dexTypeTotals.clear();
+            for (DexType dexType : DexTypesConfig.dexTypes) {
+                Placeholders.remove(Identifier.of(dexType.name, "total"));
+            }
+
             Config.load();
             MessagesConfig.load();
             DexTypesConfig.load();
             RewardGUIConfig.load();
-        } catch (IOException e) {
+
+            for (DexType dexType : DexTypesConfig.dexTypes) {
+                int dexTotal = CustomPokedexValueCalculators.getDexSize(dexType);
+                dexTypeTotals.put(dexType, dexTotal);
+
+                Placeholders.register(
+                        Identifier.of(dexType.name, "total"),
+                        (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexTotal))
+                );
+            }
+
+            List<PlayerData> newData = new ArrayList<>(PlayerDataConfig.playerData);
+
+            for (PlayerData data : newData) {
+                try {
+                    data.updateCaughtCount();
+                    data.updateClaimableRewards();
+                    PlayerDataConfig.updatePlayerData(data);
+                } catch (IOException e) {
+                    LOGGER.error("[DexRewards] Failed to update player data for player \"{}\"", data.username, e);
+                }
+            }
+
+            PlayerDataConfig.playerData = newData;
+        } catch (Exception e) {
             LOGGER.error("[DexRewards] Failed to load config files.", e);
         }
-
-        List<PlayerData> newData = new ArrayList<>(PlayerDataConfig.playerData);
-
-        for (PlayerData data : newData) {
-            try {
-                data.updateCaughtCount();
-                data.updateClaimableRewards();
-                PlayerDataConfig.updatePlayerData(data);
-            } catch (IOException e) {
-                LOGGER.error("[DexRewards] Failed to update player data for player \"{}\"", data.username, e);
-            }
-        }
-
-        PlayerDataConfig.playerData = newData;
     }
 
     public FabricServerAudiences audience() {

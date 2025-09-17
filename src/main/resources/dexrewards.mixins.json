@@ -4,6 +4,7 @@
   "package": "me.unariginal.dexrewards.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "PokedexCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1
