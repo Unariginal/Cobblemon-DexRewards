@@ -10,6 +10,7 @@ import me.unariginal.dexrewards.config.*;
 import me.unariginal.dexrewards.datatypes.CustomPokedexValueCalculators;
 import me.unariginal.dexrewards.datatypes.DexType;
 import me.unariginal.dexrewards.datatypes.PlayerData;
+import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class DexRewards implements ModInitializer {
@@ -46,63 +48,6 @@ public class DexRewards implements ModInitializer {
             this.audience = FabricServerAudiences.of(server);
 
             reload();
-//
-//            Placeholders.register(Identifier.of("player", "caught_count"), (ctx, arg) -> {
-//                if (!ctx.hasPlayer())
-//                    return PlaceholderResult.invalid("No Player!");
-//
-//                ServerPlayerEntity player = ctx.player();
-//                if (player != null)
-//                    return PlaceholderResult.value(String.valueOf(config.getPlayerData(player.getUuid()).caught_count));
-//                else
-//                    return PlaceholderResult.invalid("No Player!");
-//            });
-//
-//            Placeholders.register(Identifier.of("player", "rank"), (ctx, arg) -> {
-//                if (!ctx.hasPlayer()) {
-//                    return PlaceholderResult.invalid("No Player!");
-//                }
-//
-//                ServerPlayerEntity player = ctx.player();
-//                if (player != null) {
-//                    PlayerData playerData = config.getPlayerData(player.getUuid());
-//                    if (playerData != null) {
-//                        String rank = "None";
-//                        for (RewardGroup group : DexRewards.INSTANCE.config().reward_groups) {
-//                            if (playerData.claimed_rewards.contains(group.name)) {
-//                                rank = group.name;
-//                            }
-//                        }
-//
-//                        return PlaceholderResult.value(rank);
-//                    } else {
-//                        return PlaceholderResult.invalid("No Player Data!");
-//                    }
-//                } else {
-//                    return PlaceholderResult.invalid("No Player!");
-//                }
-//            });
-//
-//            Placeholders.register(Identifier.of("player", "caught_percent"), (ctx, arg) -> {
-//                if (!ctx.hasPlayer()) {
-//                    return PlaceholderResult.invalid("No Player!");
-//                }
-//
-//                ServerPlayerEntity player = ctx.player();
-//                if (player != null) {
-//                    PlayerData playerData = config.getPlayerData(player.getUuid());
-//                    if (playerData != null) {
-//                        String percent = new DecimalFormat("#.##").format(((double) playerData.caught_count / DexRewards.DEX_TOTAL) * 100);
-//                        return PlaceholderResult.value(percent);
-//                    } else {
-//                        return PlaceholderResult.invalid("No Player Data!");
-//                    }
-//                } else {
-//                    return PlaceholderResult.invalid("No Player!");
-//                }
-//            });
-//
-//            Placeholders.register(Identifier.of("pokedex", "total_reward_groups"), (ctx, arg) -> PlaceholderResult.value(String.valueOf(config.reward_groups.size())));
         });
 
         ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler, packetSender, server) -> {
@@ -143,22 +88,16 @@ public class DexRewards implements ModInitializer {
             dexTypeTotals.clear();
             for (DexType dexType : DexTypesConfig.dexTypes) {
                 Placeholders.remove(Identifier.of(dexType.name, "total"));
+                Placeholders.remove(Identifier.of(dexType.name, "total_groups"));
+                Placeholders.remove(Identifier.of("player", dexType.name + ".count"));
+                Placeholders.remove(Identifier.of("player", dexType.name + ".percent"));
+                Placeholders.remove(Identifier.of("player", dexType.name + ".latest_reward"));
             }
 
             Config.load();
             MessagesConfig.load();
             DexTypesConfig.load();
             RewardGUIConfig.load();
-
-            for (DexType dexType : DexTypesConfig.dexTypes) {
-                int dexTotal = CustomPokedexValueCalculators.getDexSize(dexType);
-                dexTypeTotals.put(dexType, dexTotal);
-
-                Placeholders.register(
-                        Identifier.of(dexType.name, "total"),
-                        (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexTotal))
-                );
-            }
 
             List<PlayerData> newData = new ArrayList<>(PlayerDataConfig.playerData);
 
@@ -173,8 +112,116 @@ public class DexRewards implements ModInitializer {
             }
 
             PlayerDataConfig.playerData = newData;
-        } catch (Exception e) {
+
+            loadPlaceholders();
+        } catch (IOException e) {
             LOGGER.error("[DexRewards] Failed to load config files.", e);
+        }
+    }
+
+    public void loadPlaceholders() {
+        for (DexType dexType : DexTypesConfig.dexTypes) {
+            int dexTotal = CustomPokedexValueCalculators.getDexSize(dexType);
+            dexTypeTotals.put(dexType, dexTotal);
+
+            // %national:total% -> 1025
+            Placeholders.register(
+                    Identifier.of(dexType.name, "total"),
+                    (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexTotal))
+            );
+            // %national:total_groups% -> 20
+            Placeholders.register(
+                    Identifier.of(dexType.name, "total_groups"),
+                    (ctx, arg) -> PlaceholderResult.value(String.valueOf(dexType.rewardGroups.size()))
+            );
+            // %player:national.count% -> 342
+            Placeholders.register(
+                    Identifier.of("player", dexType.name + ".count"),
+                    (ctx, arg) -> {
+                        if (!ctx.hasPlayer()) {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+
+                        ServerPlayerEntity player = ctx.player();
+                        if (player != null) {
+                            PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
+                            if (playerData != null) {
+                                PlayerData.ProgressTracker progressTracker = playerData.getProgress(dexType.name);
+                                if (progressTracker != null) {
+                                    int count = progressTracker.progressCount;
+                                    return PlaceholderResult.value(String.valueOf(count));
+                                } else {
+                                    return PlaceholderResult.invalid("No Valid Pokedex Progress!");
+                                }
+                            } else {
+                                return PlaceholderResult.invalid("No Player Data!");
+                            }
+                        } else {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+                    }
+            );
+            // %player:national.percent% -> 47.32
+            Placeholders.register(
+                    Identifier.of("player", dexType.name + ".percent"),
+                    (ctx, arg) -> {
+                        if (!ctx.hasPlayer()) {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+
+                        ServerPlayerEntity player = ctx.player();
+                        if (player != null) {
+                            PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
+                            if (playerData != null) {
+                                PlayerData.ProgressTracker progressTracker = playerData.getProgress(dexType.name);
+                                if (progressTracker != null) {
+                                    int count = progressTracker.progressCount;
+                                    Integer total = dexTypeTotals.get(dexType);
+                                    if (total == null) return PlaceholderResult.invalid("Null dex type total!");
+                                    return PlaceholderResult.value(new DecimalFormat("#.##").format(((double) count / total) * 100));
+                                } else {
+                                    return PlaceholderResult.invalid("No Valid Pokedex Progress!");
+                                }
+                            } else {
+                                return PlaceholderResult.invalid("No Player Data!");
+                            }
+                        } else {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+                    }
+            );
+            // %player:national.latest_reward% -> 47.32
+            Placeholders.register(
+                    Identifier.of("player", dexType.name + ".latest_reward"),
+                    (ctx, arg) -> {
+                        if (!ctx.hasPlayer()) {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+
+                        ServerPlayerEntity player = ctx.player();
+                        if (player != null) {
+                            PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
+                            if (playerData != null) {
+                                PlayerData.ProgressTracker progressTracker = playerData.getProgress(dexType.name);
+                                if (progressTracker != null) {
+                                    String group = "None";
+                                    for (RewardGroup rewardGroup : dexType.rewardGroups) {
+                                        if (progressTracker.claimedRewards.contains(rewardGroup.name)) {
+                                            group = rewardGroup.displayName;
+                                        }
+                                    }
+                                    return PlaceholderResult.value(group);
+                                } else {
+                                    return PlaceholderResult.invalid("No Valid Pokedex Progress!");
+                                }
+                            } else {
+                                return PlaceholderResult.invalid("No Player Data!");
+                            }
+                        } else {
+                            return PlaceholderResult.invalid("No Player!");
+                        }
+                    }
+            );
         }
     }
 
