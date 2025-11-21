@@ -37,9 +37,10 @@ public class TextUtils {
     }
 
     public static String parse(String text, RewardGroup rewardGroup) {
-        return parse(text)
+        text = parse(text)
                 .replaceAll("%group.name%", rewardGroup != null ? rewardGroup.displayName : "null")
                 .replaceAll("%group.percent%", rewardGroup != null ? String.valueOf(rewardGroup.requiredPercent) : "null");
+        return text;
     }
 
     public static String parse(String text, Reward reward) {

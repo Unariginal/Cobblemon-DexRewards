@@ -48,17 +48,17 @@ public class PlayerDataConfig {
             if (root.has("caught_count")) caughtCount = root.get("caught_count").getAsInt();
             nationalPokedexProgressObject.addProperty("caught_count", caughtCount);
 
-            if (root.has("claimed_rewards")) claimedRewards = new ArrayList<>(root.get("claimed_rewards").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList());
+            if (root.has("claimed_rewards")) claimedRewards = new ArrayList<>(root.get("claimed_rewards").getAsJsonArray().asList().stream().map(element -> element.getAsString().toLowerCase()).toList());
             JsonArray claimedRewardsArray = new JsonArray();
             for (String claimedRewardString : claimedRewards) {
-                claimedRewardsArray.add(claimedRewardString);
+                claimedRewardsArray.add(claimedRewardString.toLowerCase());
             }
             nationalPokedexProgressObject.add("claimed_rewards", claimedRewardsArray);
 
-            if (root.has("claimable_rewards")) claimableRewards = new ArrayList<>(root.get("claimable_rewards").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList());
+            if (root.has("claimable_rewards")) claimableRewards = new ArrayList<>(root.get("claimable_rewards").getAsJsonArray().asList().stream().map(element -> element.getAsString().toLowerCase()).toList());
             JsonArray claimableRewardsArray = new JsonArray();
             for (String claimableRewardString : claimableRewards) {
-                claimableRewardsArray.add(claimableRewardString);
+                claimableRewardsArray.add(claimableRewardString.toLowerCase());
             }
             nationalPokedexProgressObject.add("claimable_rewards", claimableRewardsArray);
 
@@ -79,13 +79,13 @@ public class PlayerDataConfig {
                 if (dexProgressObject.has("claimed_rewards")) claimedRewards = new ArrayList<>(dexProgressObject.get("claimed_rewards").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList());
                 JsonArray claimedRewardsArray = new JsonArray();
                 for (String claimed : claimedRewards) {
-                    claimedRewardsArray.add(claimed);
+                    claimedRewardsArray.add(claimed.toLowerCase());
                 }
                 dexProgressObject.add("claimed_rewards", claimedRewardsArray);
                 if (dexProgressObject.has("claimable_rewards")) claimableRewards = new ArrayList<>(dexProgressObject.get("claimable_rewards").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList());
                 JsonArray claimableRewardsArray = new JsonArray();
                 for (String claimable : claimableRewards) {
-                    claimableRewardsArray.add(claimable);
+                    claimableRewardsArray.add(claimable.toLowerCase());
                 }
                 dexProgressObject.add("claimable_rewards", claimableRewardsArray);
 
@@ -127,12 +127,12 @@ public class PlayerDataConfig {
             dexProgress.addProperty("caught_count", progressTracker.progressCount);
             JsonArray claimedRewards = new JsonArray();
             for (String group : progressTracker.claimedRewards) {
-                claimedRewards.add(group);
+                claimedRewards.add(group.toLowerCase());
             }
             dexProgress.add("claimed_rewards", claimedRewards);
             JsonArray claimableRewards = new JsonArray();
             for (String group : progressTracker.claimableRewards) {
-                claimableRewards.add(group);
+                claimableRewards.add(group.toLowerCase());
             }
             dexProgress.add("claimable_rewards", claimableRewards);
 

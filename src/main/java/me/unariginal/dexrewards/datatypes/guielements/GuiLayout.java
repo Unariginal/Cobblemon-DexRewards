@@ -109,9 +109,9 @@ public class GuiLayout {
                         ItemStack icon = group.icon;
 
                         String status = "locked";
-                        if (progressTracker.claimableRewards.contains(group.name))
+                        if (progressTracker.claimableRewards.contains(group.name.toLowerCase()))
                             status = "claimable";
-                        else if (progressTracker.claimedRewards.contains(group.name))
+                        else if (progressTracker.claimedRewards.contains(group.name.toLowerCase()))
                             status = "claimed";
 
                         GuiElement groupElement = null;
@@ -128,8 +128,8 @@ public class GuiLayout {
                                 .setCallback((i, clickType, slotActionType) -> {
                                     if (finalStatus.equals("claimable")) {
                                         try {
-                                            progressTracker.claimableRewards.removeIf(reward -> reward.equalsIgnoreCase(group.name));
-                                            progressTracker.claimedRewards.add(group.name);
+                                            progressTracker.claimableRewards.removeIf(reward -> reward.equalsIgnoreCase(group.name.toLowerCase()));
+                                            progressTracker.claimedRewards.add(group.name.toLowerCase());
 
                                             group.distributeRewards(player);
 

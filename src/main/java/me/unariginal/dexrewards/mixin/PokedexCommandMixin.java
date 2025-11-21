@@ -3,9 +3,11 @@ package me.unariginal.dexrewards.mixin;
 import com.cobblemon.mod.common.command.PokedexCommand;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.unariginal.dexrewards.DexRewards;
 import me.unariginal.dexrewards.config.PlayerDataConfig;
 import me.unariginal.dexrewards.datatypes.PlayerData;
+import net.minecraft.command.EntitySelector;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,22 +38,23 @@ public class PokedexCommandMixin {
     }
 
     @Inject(method = "executeGrantOnly", at = @At("TAIL"))
-    private void updateOnGrantOnly(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local List<ServerPlayerEntity> players) {
+    private void updateOnGrantOnly(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir) throws CommandSyntaxException {
+        List<ServerPlayerEntity> players = ctx.getArgument("player", EntitySelector.class).getPlayers(ctx.getSource());
         updateDataForPlayers(players);
     }
 
     @Inject(method = "executeRemoveOnly", at = @At("TAIL"))
-    private void updateOnRemoveOnly(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local List<ServerPlayerEntity> players) {
+    private void updateOnRemoveOnly(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local(name = "players") List<ServerPlayerEntity> players) {
         updateDataForPlayers(players);
     }
 
     @Inject(method = "executeGrantAll", at = @At("TAIL"))
-    private void updateOnGrantAll(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local List<ServerPlayerEntity> players) {
+    private void updateOnGrantAll(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local(name = "players") List<ServerPlayerEntity> players) {
         updateDataForPlayers(players);
     }
 
     @Inject(method = "executeRemoveAll", at = @At("TAIL"))
-    private void updateOnRemoveAll(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local List<ServerPlayerEntity> players) {
+    private void updateOnRemoveAll(CommandContext<ServerCommandSource> ctx, CallbackInfoReturnable<Integer> cir, @Local(name = "players") List<ServerPlayerEntity> players) {
         updateDataForPlayers(players);
     }
 }

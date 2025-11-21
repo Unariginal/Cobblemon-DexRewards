@@ -153,7 +153,7 @@ public class DexCommands {
     private int generate(CommandContext<ServerCommandSource> ctx) {
         int unimplemented_total = 0;
         for (Map.Entry<Identifier, PokedexEntry> entry : DexEntries.INSTANCE.getEntries().entrySet()) {
-            Species species = PokemonSpecies.INSTANCE.getByIdentifier(entry.getKey());
+            Species species = PokemonSpecies.getByIdentifier(entry.getKey());
             if (species != null) {
                 if (!species.getImplemented()) {
                     DexRewards.INSTANCE.logInfo("[DexRewards] Unimplemented: " + entry.getKey());

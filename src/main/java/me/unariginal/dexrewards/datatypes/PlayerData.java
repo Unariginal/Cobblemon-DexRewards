@@ -91,11 +91,11 @@ public class PlayerData {
             if (player != null) {
                 List<String> newClaimableRewards = new ArrayList<>();
                 for (RewardGroup group : dexType.rewardGroups) {
-                    if (!progressTracker.claimedRewards.contains(group.name)) {
+                    if (!progressTracker.claimedRewards.contains(group.name.toLowerCase())) {
                         double percentComplete = ((double) progressTracker.progressCount / DexRewards.INSTANCE.dexTypeTotals.get(dexType)) * 100.0;
                         if (percentComplete >= group.requiredPercent) {
-                            newClaimableRewards.add(group.name);
-                            if (!progressTracker.claimableRewards.contains(group.name)) {
+                            newClaimableRewards.add(group.name.toLowerCase());
+                            if (!progressTracker.claimableRewards.contains(group.name.toLowerCase())) {
                                 player.sendMessage(TextUtils.deserialize(TextUtils.parse(MessagesConfig.getMessage("reward_claimable"), group)));
                             }
                         }

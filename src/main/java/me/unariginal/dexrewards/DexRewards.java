@@ -2,6 +2,7 @@ package me.unariginal.dexrewards;
 
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
+import com.cobblemon.mod.common.platform.events.PlatformEvents;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import kotlin.Unit;
@@ -13,7 +14,6 @@ import me.unariginal.dexrewards.datatypes.PlayerData;
 import me.unariginal.dexrewards.datatypes.rewards.RewardGroup;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -50,17 +50,18 @@ public class DexRewards implements ModInitializer {
             reload();
         });
 
-        ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler, packetSender, server) -> {
-            ServerPlayerEntity player = serverPlayNetworkHandler.getPlayer();
-            if (player != null) {
-                try {
-                    PlayerData playerData = PlayerDataConfig.loadPlayerData(player);
+        PlatformEvents.SERVER_PLAYER_LOGIN.subscribe(Priority.LOW, event -> {
+            ServerPlayerEntity player = event.getPlayer();
+            try {
+                PlayerDataConfig.loadPlayerData(player);
+                PlayerData playerData = PlayerDataConfig.getPlayerData(player.getUuid());
+                if (playerData != null) {
                     playerData.updateCaughtCount();
                     playerData.updateClaimableRewards();
                     PlayerDataConfig.updatePlayerData(playerData);
-                } catch (IOException e) {
-                    LOGGER.error("[DexRewards] Failed to load player data for player \"{}\".", player.getNameForScoreboard(), e);
                 }
+            } catch (IOException e) {
+                LOGGER.error("[DexRewards] Failed to load player data for player \"{}\".", player.getNameForScoreboard(), e);
             }
         });
 
