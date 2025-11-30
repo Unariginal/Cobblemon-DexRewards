@@ -56,9 +56,6 @@ public class PlayerData {
             DexType dexType = DexTypesConfig.getDexType(progressTracker.dexType);
             if (dexType == null) continue;
 
-            Dexes.INSTANCE.getDexEntryMap().values().forEach(dexEntry ->
-                    dex.getDexCalculatedValue(dexEntry.getId(), com.cobblemon.mod.common.api.pokedex.CaughtPercent.INSTANCE)
-            );
             List<PokedexEntry> pokedexEntries = Dexes.INSTANCE.getDexEntryMap().get(Identifier.of(dexType.pokedex)).getEntries();
             Map<Identifier, PokedexEntry> pokedexEntryMap = new HashMap<>();
             for (PokedexEntry pokedexEntry : pokedexEntries) {
